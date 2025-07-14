@@ -20,6 +20,8 @@ namespace ModeratorBot
 
         private static readonly IMongoCollection<UserModel> user_collection;
 
+        public const short MAX_WARNS = 3;
+
         static Database()
         {
             try
@@ -85,6 +87,7 @@ namespace ModeratorBot
                 Duration = duration,
                 Reason = reason
             };
+
             if (message.ReplyToMessage != null)
             {
                 var user = await GetUser(message.ReplyToMessage);
@@ -100,7 +103,7 @@ namespace ModeratorBot
             {
                 string?[]? args = message.Text?.Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1).ToArray();
 
-                long userId = long.Parse(args?[0]);
+                long userId = long.Parse(args?[0]!);
                 var user = await GetUser(userId, message.Chat.Id);
 
                 await user_collection.UpdateOneAsync(u => u.UserId == user.UserId && user.GroupId == message.Chat.Id,
@@ -110,6 +113,38 @@ namespace ModeratorBot
                     "Added punishment type of {PunishmentType} to user {user} in {chat} chat. Until: {duration}. Reason: {reason}",
                     punishment.Type, user.UserId, message.Chat.Id, duration, reason);
             }
+        }
+
+
+        public static async Task AddWarning(Message message, string? reason)
+        {
+            if (message.ReplyToMessage != null)
+            {
+                var user = await GetUser(message.ReplyToMessage);
+
+                await AddPunishment(message, PunishmentType.Warning, reason: reason);
+                await user_collection.UpdateOneAsync(u => u.UserId == user.UserId && u.GroupId == message.Chat.Id,
+                    Builders<UserModel>.Update.Inc(u => u.WarningCount, 1));
+            }
+            else
+            {
+                string?[]? args = message.Text?.Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1).ToArray();
+
+                long userId = long.Parse(args?[0]!);
+                var user = await GetUser(userId, message.Chat.Id);
+
+                await AddPunishment(message, PunishmentType.Warning, reason: reason);
+                await user_collection.UpdateOneAsync(u => u.UserId == user.UserId && u.GroupId == message.Chat.Id,
+                    Builders<UserModel>.Update.Inc(u => u.WarningCount, 1));
+            }
+        }
+
+        public static async Task ResetWarning(long userId, long chatId)
+        {
+            var user = await GetUser(userId, chatId);
+
+            await user_collection.UpdateOneAsync(u => u.UserId == user.UserId && u.GroupId == chatId,
+                Builders<UserModel>.Update.Set(u => u.WarningCount, 0));
         }
 
         public static async Task UpdateUserActivity(Message message)

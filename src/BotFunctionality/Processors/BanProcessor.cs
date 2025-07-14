@@ -76,6 +76,13 @@ namespace ModeratorBot.BotFunctionality.Processors
                     duration = DateTime.UtcNow.AddSeconds(ConvertToSeconds.Convert(args[dateIndex]));
                 }
 
+                var user = await Database.GetUser(member.User.Id, message.Chat.Id);
+                if (user.WarningCount >= Database.MAX_WARNS)
+                {
+                    reason = "User has reached max warnings.";
+                    await Database.ResetWarning(user.UserId, user.GroupId);
+                }
+
                 await bot.BanChatMember(message.Chat.Id, member.User.Id, untilDate: duration);
                 await Database.AddPunishment(message, PunishmentType.Ban, duration, reason);
 
