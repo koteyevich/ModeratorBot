@@ -20,6 +20,8 @@ namespace ModeratorBot
 
         private static readonly IMongoCollection<UserModel> user_collection;
 
+        public const short MAX_WARNS = 3;
+
         static Database()
         {
             try
