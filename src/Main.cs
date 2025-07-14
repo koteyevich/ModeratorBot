@@ -1,5 +1,4 @@
-﻿using System.ComponentModel;
-using ModeratorBot.BotFunctionality.Callbacks;
+﻿using ModeratorBot.BotFunctionality.Callbacks;
 using ModeratorBot.BotFunctionality.Commands;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -26,15 +25,17 @@ namespace ModeratorBot
 
             bot = Secrets.SERVER switch
             {
-                Server.Test => new TelegramBotClient(new TelegramBotClientOptions(Secrets.TEST_TOKEN,
-                    useTestEnvironment: true)),
+                Server.Test =>
+                    new TelegramBotClient(new TelegramBotClientOptions(Secrets.TEST_TOKEN,
+                        useTestEnvironment: true)),
                 Server.Production => new TelegramBotClient(Secrets.PRODUCTION_TOKEN),
                 _ => throw new ArgumentOutOfRangeException()
             };
 
+
             var me = await bot.GetMe();
 
-            Logger.Info("Bot connected as {me.Username}", $"@{me.Username}");
+            Logger.Info("Bot connected as {me.Username} in {server} server.", $"@{me.Username}", Secrets.SERVER);
 
             commandRegistry = new CommandRegistry();
             callbackRegistry = new CallbackRegistry();
@@ -67,6 +68,7 @@ namespace ModeratorBot
         {
             try
             {
+                await Database.UpdateUserActivity(message);
                 if (message.Text == null)
                 {
                     return;

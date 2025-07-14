@@ -110,5 +110,15 @@ namespace ModeratorBot
                     punishment.Type, user.UserId, message.Chat.Id, duration);
             }
         }
+
+        public static async Task UpdateUserActivity(Message message)
+        {
+            var user = await GetUser(message);
+
+            await user_collection.UpdateOneAsync(u => u.UserId == user.UserId && u.GroupId == message.Chat.Id,
+                Builders<UserModel>.Update.Inc(u => u.MessageCount, 1));
+            await user_collection.UpdateOneAsync(u => u.UserId == user.UserId && u.GroupId == message.Chat.Id,
+                Builders<UserModel>.Update.Set(u => u.LastSeen, DateTime.UtcNow) );
+        }
     }
 }
