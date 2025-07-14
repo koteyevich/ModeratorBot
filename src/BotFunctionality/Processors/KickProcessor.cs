@@ -12,10 +12,14 @@ namespace ModeratorBot.BotFunctionality.Processors
 
             if (message.ReplyToMessage != null)
             {
+                string? reason = args?.Length > 0 ? string.Join(" ", args) : null;
+
+                // try/catching to catch invalid id errors and send the exceptions as different exceptions that won't
+                // make logs extremely trashy.
                 try
                 {
                     var replyMember = await bot.GetChatMember(message.Chat.Id, message.ReplyToMessage.From!.Id);
-                    await kick(message, replyMember, bot);
+                    await kick(message, replyMember, reason, bot);
                 }
                 catch (Exception e)
                 {
@@ -32,10 +36,12 @@ namespace ModeratorBot.BotFunctionality.Processors
                     throw new Exceptions.Message("Please provide a valid user id");
                 }
 
+                string? reason = args?.Length > 1 ? string.Join(" ", args.Skip(1)) : null;
+
                 try
                 {
                     var member = await bot.GetChatMember(message.Chat.Id, userId);
-                    await kick(message, member, bot);
+                    await kick(message, member, reason, bot);
                 }
                 catch (Exception e)
                 {
@@ -47,15 +53,20 @@ namespace ModeratorBot.BotFunctionality.Processors
             }
         }
 
-        private static async Task kick(Message message, ChatMember member, TelegramBotClient bot)
+        private static async Task kick(Message message, ChatMember member, string? reason, TelegramBotClient bot)
         {
             if (!member.IsAdmin)
             {
                 await bot.BanChatMember(message.Chat.Id, member.User.Id, DateTime.UtcNow.AddSeconds(30));
-                await Database.AddPunishment(message, PunishmentType.Kick);
+                await Database.AddPunishment(message, PunishmentType.Kick, reason: reason);
 
-                await bot.SendMessage(message.Chat.Id, $"User {member.User.Id} has been kicked.");
+                await bot.SendMessage(message.Chat.Id, $"User {member.User.Id} has been kicked.\n" +
+                                                       $"Reason: {(string.IsNullOrEmpty(reason) ? "No reason provided" : reason)}");
                 await bot.UnbanChatMember(message.Chat.Id, member.User.Id);
+            }
+            else
+            {
+                throw new Exceptions.Message("Cannot kick admin.");
             }
         }
     }
