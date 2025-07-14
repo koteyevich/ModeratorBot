@@ -5,11 +5,16 @@ using Telegram.Bot.Types;
 
 namespace ModeratorBot.BotFunctionality.Processors
 {
-    public class MuteProcessor
+    public static class MuteProcessor
     {
         public static async Task ProcessMuteAsync(Message message, TelegramBotClient bot)
         {
-            string?[]? args = message.Text?.Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1).ToArray();
+            string?[]? args = message.Text?.Split('\n')[0].Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1)
+                .ToArray();
+            string? reason = message.Text?.Contains('\n') == true
+                ? message.Text[(message.Text.IndexOf('\n') + 1)..].Trim()
+                : null;
+            if (string.IsNullOrWhiteSpace(reason)) reason = null;
 
             if (message.ReplyToMessage != null)
             {
@@ -24,7 +29,7 @@ namespace ModeratorBot.BotFunctionality.Processors
                 try
                 {
                     var replyMember = await bot.GetChatMember(message.Chat.Id, message.ReplyToMessage.From!.Id);
-                    await mute(message, replyMember, args, 0, bot);
+                    await mute(message, replyMember, args, 0, reason, bot);
                 }
                 catch (Exception e)
                 {
@@ -32,11 +37,13 @@ namespace ModeratorBot.BotFunctionality.Processors
                     {
                         throw new Exceptions.Message(e.Message);
                     }
+
+                    throw;
                 }
             }
             else
             {
-                if (args?.Length == 0 || string.IsNullOrEmpty(args[0]) || !long.TryParse(args[0], out long userId))
+                if (args?.Length == 0 || string.IsNullOrEmpty(args?[0]) || !long.TryParse(args[0], out long userId))
                 {
                     throw new Exceptions.Message("Provide a valid user ID when not replying to a message.");
                 }
@@ -44,7 +51,7 @@ namespace ModeratorBot.BotFunctionality.Processors
                 try
                 {
                     var member = await bot.GetChatMember(message.Chat.Id, userId);
-                    await mute(message, member, args, 1, bot);
+                    await mute(message, member, args, 1, reason, bot);
                 }
                 catch (Exception e)
                 {
@@ -52,27 +59,37 @@ namespace ModeratorBot.BotFunctionality.Processors
                     {
                         throw new Exceptions.Message(e.Message);
                     }
+
+                    throw;
                 }
             }
         }
 
         private static async Task mute(Message message, ChatMember member, string?[]? args, short dateIndex,
-            TelegramBotClient bot)
+            string? reason, TelegramBotClient bot)
         {
             if (!member.IsAdmin)
             {
                 DateTime? duration = null;
-                if (args?.Length > 0 && !string.IsNullOrWhiteSpace(args[0]))
+                if (args?.Length > dateIndex && !string.IsNullOrWhiteSpace(args[dateIndex]))
                 {
-                    duration = DateTime.UtcNow.AddSeconds(ConvertToSeconds.Convert(args[dateIndex]));
+                    long seconds = ConvertToSeconds.Convert(args[dateIndex]);
+                    if (seconds == 0)
+                    {
+                        throw new Exceptions.Message("Invalid duration format. Use formats like '1d12h30m'.");
+                    }
+
+                    duration = DateTime.UtcNow.AddSeconds(seconds);
                 }
 
                 await bot.RestrictChatMember(message.Chat.Id, member.User.Id, new ChatPermissions(),
                     untilDate: duration);
-                await Database.AddPunishment(message, PunishmentType.Mute, duration);
+                await Database.AddPunishment(message, PunishmentType.Mute, duration, reason);
 
-                await bot.SendMessage(message.Chat.Id, $"User {member.User.Id} has been muted.\n" +
-                                                       $"Duration: {(duration != null ? duration?.ToString("g") : "FOREVER")}");
+                await bot.SendMessage(message.Chat.Id,
+                    $"User {member.User.Id} has been muted.\n" +
+                    $"Until: {(duration != null ? TimeZoneInfo.ConvertTimeFromUtc(duration.Value, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time")).ToString("G") : "FOREVER")}\n" +
+                    $"Reason: {(string.IsNullOrEmpty(reason) ? "No reason provided" : reason)}");
             }
             else
             {
