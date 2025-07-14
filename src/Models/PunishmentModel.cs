@@ -20,6 +20,7 @@ namespace ModeratorBot.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? Duration { get; set; }
         public PunishmentType Type { get; set; }
+        public string? Reason { get; set; }
 
         public long ModeratorId { get; set; }
         public string? ModeratorUsername { get; set; }

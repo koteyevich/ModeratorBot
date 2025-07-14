@@ -75,7 +75,7 @@ namespace ModeratorBot
         }
 
         public static async Task AddPunishment(Message message, PunishmentType punishmentType,
-            DateTime? duration = null)
+            DateTime? duration = null, string? reason = null)
         {
             var punishment = new PunishmentModel()
             {
@@ -83,6 +83,7 @@ namespace ModeratorBot
                 ModeratorUsername = message.From.Username,
                 Type = punishmentType,
                 Duration = duration,
+                Reason = reason
             };
             if (message.ReplyToMessage != null)
             {
@@ -92,8 +93,8 @@ namespace ModeratorBot
                     Builders<UserModel>.Update.AddToSet(u => u.Punishments, punishment));
 
                 Logger.Debug(
-                    "Added punishment type of {PunishmentType} to user {user} in {chat} chat. Until: {duration}",
-                    punishment.Type, user.UserId, message.Chat.Id, duration);
+                    "Added punishment type of {PunishmentType} to user {user} in {chat} chat. Until: {duration}. Reason: {reason}",
+                    punishment.Type, user.UserId, message.Chat.Id, duration, reason);
             }
             else
             {
@@ -106,8 +107,8 @@ namespace ModeratorBot
                     Builders<UserModel>.Update.AddToSet(u => u.Punishments, punishment));
 
                 Logger.Debug(
-                    "Added punishment type of {PunishmentType} to user {user} in {chat} chat. Until: {duration}",
-                    punishment.Type, user.UserId, message.Chat.Id, duration);
+                    "Added punishment type of {PunishmentType} to user {user} in {chat} chat. Until: {duration}. Reason: {reason}",
+                    punishment.Type, user.UserId, message.Chat.Id, duration, reason);
             }
         }
 
@@ -118,7 +119,7 @@ namespace ModeratorBot
             await user_collection.UpdateOneAsync(u => u.UserId == user.UserId && u.GroupId == message.Chat.Id,
                 Builders<UserModel>.Update.Inc(u => u.MessageCount, 1));
             await user_collection.UpdateOneAsync(u => u.UserId == user.UserId && u.GroupId == message.Chat.Id,
-                Builders<UserModel>.Update.Set(u => u.LastSeen, DateTime.UtcNow) );
+                Builders<UserModel>.Update.Set(u => u.LastSeen, DateTime.UtcNow));
         }
     }
 }

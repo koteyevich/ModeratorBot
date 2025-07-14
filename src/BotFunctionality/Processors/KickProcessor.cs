@@ -4,18 +4,25 @@ using Telegram.Bot.Types;
 
 namespace ModeratorBot.BotFunctionality.Processors
 {
-    public class KickProcessor
+    public static class KickProcessor
     {
         public static async Task ProcessKickAsync(Message message, TelegramBotClient bot)
         {
-            string?[]? args = message.Text?.Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1).ToArray();
+            string?[]? args = message.Text?.Split('\n')[0].Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1)
+                .ToArray();
+            string? reason = message.Text?.Contains('\n') == true
+                ? message.Text[(message.Text.IndexOf('\n') + 1)..].Trim()
+                : null;
+            if (string.IsNullOrWhiteSpace(reason)) reason = null;
 
             if (message.ReplyToMessage != null)
             {
+                // try/catching to catch invalid id errors and send the exceptions as different exceptions that won't
+                // make logs extremely trashy.
                 try
                 {
                     var replyMember = await bot.GetChatMember(message.Chat.Id, message.ReplyToMessage.From!.Id);
-                    await kick(message, replyMember, bot);
+                    await kick(message, replyMember, reason, bot);
                 }
                 catch (Exception e)
                 {
@@ -27,7 +34,7 @@ namespace ModeratorBot.BotFunctionality.Processors
             }
             else
             {
-                if (args?.Length == 0 || string.IsNullOrEmpty(args[0]) || !long.TryParse(args[0], out long userId))
+                if (args?.Length == 0 || string.IsNullOrEmpty(args?[0]) || !long.TryParse(args[0], out long userId))
                 {
                     throw new Exceptions.Message("Please provide a valid user id");
                 }
@@ -35,7 +42,7 @@ namespace ModeratorBot.BotFunctionality.Processors
                 try
                 {
                     var member = await bot.GetChatMember(message.Chat.Id, userId);
-                    await kick(message, member, bot);
+                    await kick(message, member, reason, bot);
                 }
                 catch (Exception e)
                 {
@@ -47,15 +54,20 @@ namespace ModeratorBot.BotFunctionality.Processors
             }
         }
 
-        private static async Task kick(Message message, ChatMember member, TelegramBotClient bot)
+        private static async Task kick(Message message, ChatMember member, string? reason, TelegramBotClient bot)
         {
             if (!member.IsAdmin)
             {
                 await bot.BanChatMember(message.Chat.Id, member.User.Id, DateTime.UtcNow.AddSeconds(30));
-                await Database.AddPunishment(message, PunishmentType.Kick);
+                await Database.AddPunishment(message, PunishmentType.Kick, reason: reason);
 
-                await bot.SendMessage(message.Chat.Id, $"User {member.User.Id} has been kicked.");
+                await bot.SendMessage(message.Chat.Id, $"User {member.User.Id} has been kicked.\n" +
+                                                       $"Reason: {(string.IsNullOrEmpty(reason) ? "No reason provided" : reason)}");
                 await bot.UnbanChatMember(message.Chat.Id, member.User.Id);
+            }
+            else
+            {
+                throw new Exceptions.Message("Cannot kick admin.");
             }
         }
     }
