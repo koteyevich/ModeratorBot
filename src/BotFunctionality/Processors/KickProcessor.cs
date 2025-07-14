@@ -4,20 +4,18 @@ using Telegram.Bot.Types;
 
 namespace ModeratorBot.BotFunctionality.Processors
 {
-    public class UnmuteProcessor
+    public class KickProcessor
     {
-        public static async Task ProcessUnmuteAsync(Message message, TelegramBotClient bot)
+        public static async Task ProcessKickAsync(Message message, TelegramBotClient bot)
         {
             string?[]? args = message.Text?.Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1).ToArray();
 
             if (message.ReplyToMessage != null)
             {
-                // try/catching to catch invalid id errors and send the exceptions as different exceptions that won't
-                // make logs extremely trashy.
                 try
                 {
                     var replyMember = await bot.GetChatMember(message.Chat.Id, message.ReplyToMessage.From!.Id);
-                    await unmute(message, replyMember, bot);
+                    await kick(message, replyMember, bot);
                 }
                 catch (Exception e)
                 {
@@ -31,13 +29,13 @@ namespace ModeratorBot.BotFunctionality.Processors
             {
                 if (args?.Length == 0 || string.IsNullOrEmpty(args[0]) || !long.TryParse(args[0], out long userId))
                 {
-                    throw new Exceptions.Message("Provide a valid user ID when not replying to a message.");
+                    throw new Exceptions.Message("Please provide a valid user id");
                 }
 
                 try
                 {
                     var member = await bot.GetChatMember(message.Chat.Id, userId);
-                    await unmute(message, member, bot);
+                    await kick(message, member, bot);
                 }
                 catch (Exception e)
                 {
@@ -49,18 +47,15 @@ namespace ModeratorBot.BotFunctionality.Processors
             }
         }
 
-        private static async Task unmute(Message message, ChatMember member, TelegramBotClient bot)
+        private static async Task kick(Message message, ChatMember member, TelegramBotClient bot)
         {
             if (!member.IsAdmin)
             {
-                await bot.RestrictChatMember(message.Chat.Id, member.User.Id, new ChatPermissions(true));
-                await Database.AddPunishment(message, PunishmentType.Unmute);
+                await bot.BanChatMember(message.Chat.Id, member.User.Id, DateTime.UtcNow.AddSeconds(1));
 
-                await bot.SendMessage(message.Chat.Id, $"User {member.User.Id} has been unmuted.");
-            }
-            else
-            {
-                throw new Exceptions.Message("Cannot unrestrict admin.");
+                await Database.AddPunishment(message, PunishmentType.Kick);
+
+                await bot.SendMessage(message.Chat.Id, $"User {member.User.Id} has been kicked.");
             }
         }
     }

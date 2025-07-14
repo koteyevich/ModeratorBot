@@ -112,9 +112,6 @@ namespace ModeratorBot
         /// </summary>
         /// <param name="exception">takes an exception to get details from</param>
         /// <param name="chatId">used to send the error messages in chat where the error happened</param>
-        /// <remarks>This is kind of your canvas. This is where you define handling of errors. It can be simple, it can be complex.
-        /// I gave you some basic error handling. <c>Exceptions.Message</c> is an exception that will tell the user that they did something wrong,
-        /// but the problem is not too serious to be sent to you. For example, insufficient balance error, you don't want that to bury real errors.</remarks>
         private static async Task OnError(Exception? exception, long chatId)
         {
             if (exception is Exceptions.Message)

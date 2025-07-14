@@ -12,12 +12,6 @@ namespace ModeratorBot.BotFunctionality.Processors
 
             if (message.ReplyToMessage != null)
             {
-                if (args?.Length > 0)
-                {
-                    throw new Exceptions.Message(
-                        "When replying, provide nothing to unban.");
-                }
-
                 // try/catching to catch invalid id errors and send the exceptions as different exceptions that won't
                 // make logs extremely trashy.
                 try
