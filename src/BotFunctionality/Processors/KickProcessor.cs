@@ -51,11 +51,11 @@ namespace ModeratorBot.BotFunctionality.Processors
         {
             if (!member.IsAdmin)
             {
-                await bot.BanChatMember(message.Chat.Id, member.User.Id, DateTime.UtcNow.AddSeconds(1));
-
+                await bot.BanChatMember(message.Chat.Id, member.User.Id, DateTime.UtcNow.AddSeconds(30));
                 await Database.AddPunishment(message, PunishmentType.Kick);
 
                 await bot.SendMessage(message.Chat.Id, $"User {member.User.Id} has been kicked.");
+                await bot.UnbanChatMember(message.Chat.Id, member.User.Id);
             }
         }
     }
