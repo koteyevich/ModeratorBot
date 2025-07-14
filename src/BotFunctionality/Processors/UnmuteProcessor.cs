@@ -8,7 +8,12 @@ namespace ModeratorBot.BotFunctionality.Processors
     {
         public static async Task ProcessUnmuteAsync(Message message, TelegramBotClient bot)
         {
-            string?[]? args = message.Text?.Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1).ToArray();
+            string?[]? args = message.Text?.Split('\n')[0].Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1)
+                .ToArray();
+            string? reason = message.Text?.Contains('\n') == true
+                ? message.Text[(message.Text.IndexOf('\n') + 1)..].Trim()
+                : null;
+            if (string.IsNullOrWhiteSpace(reason)) reason = null;
 
             if (message.ReplyToMessage != null)
             {
@@ -17,7 +22,7 @@ namespace ModeratorBot.BotFunctionality.Processors
                 try
                 {
                     var replyMember = await bot.GetChatMember(message.Chat.Id, message.ReplyToMessage.From!.Id);
-                    await unmute(message, replyMember, bot);
+                    await unmute(message, replyMember, reason, bot);
                 }
                 catch (Exception e)
                 {
@@ -37,7 +42,7 @@ namespace ModeratorBot.BotFunctionality.Processors
                 try
                 {
                     var member = await bot.GetChatMember(message.Chat.Id, userId);
-                    await unmute(message, member, bot);
+                    await unmute(message, member, reason, bot);
                 }
                 catch (Exception e)
                 {
@@ -49,14 +54,15 @@ namespace ModeratorBot.BotFunctionality.Processors
             }
         }
 
-        private static async Task unmute(Message message, ChatMember member, TelegramBotClient bot)
+        private static async Task unmute(Message message, ChatMember member, string? reason, TelegramBotClient bot)
         {
             if (!member.IsAdmin)
             {
                 await bot.RestrictChatMember(message.Chat.Id, member.User.Id, new ChatPermissions(true));
-                await Database.AddPunishment(message, PunishmentType.Unmute);
+                await Database.AddPunishment(message, PunishmentType.Unmute, reason: reason);
 
-                await bot.SendMessage(message.Chat.Id, $"User {member.User.Id} has been unmuted.");
+                await bot.SendMessage(message.Chat.Id, $"User {member.User.Id} has been unmuted.\n" +
+                                                       $"Reason: {reason}");
             }
             else
             {
