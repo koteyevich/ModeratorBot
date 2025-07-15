@@ -20,7 +20,6 @@ namespace ModeratorBot.BotFunctionality.Callbacks
 
             var buttons = new List<InlineKeyboardButton>();
 
-            buttons.Add(new InlineKeyboardButton("👁", "https://example.com"));
             buttons.Add(new InlineKeyboardButton("🔒", $"reveal_{user.UserId}_{user.GroupId}"));
             buttons.Add(new InlineKeyboardButton("❌", "delete"));
 
