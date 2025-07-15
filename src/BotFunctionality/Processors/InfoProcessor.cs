@@ -59,7 +59,7 @@ namespace ModeratorBot.BotFunctionality.Processors
 
                 var keyboard = new InlineKeyboardMarkup();
 
-                var revealButton = new InlineKeyboardButton("🔒", $"reveal_{member.User.Id}_{message.Chat.Id}");
+                var revealButton = new InlineKeyboardButton("🔒", $"reveal_{user.UserId}_{message.Chat.Id}");
                 var deleteButton = new InlineKeyboardButton("❌", "delete");
 
                 keyboard.AddButtons(revealButton, deleteButton);
@@ -74,11 +74,10 @@ namespace ModeratorBot.BotFunctionality.Processors
 
                 var keyboard = new InlineKeyboardMarkup();
 
-                var toDmButton = new InlineKeyboardButton("👁", "https://example.com");
                 var revealButton = new InlineKeyboardButton("🔒", $"reveal_{user.UserId}_{user.GroupId}");
                 var deleteButton = new InlineKeyboardButton("❌", "delete");
 
-                keyboard.AddButtons(toDmButton, revealButton, deleteButton);
+                keyboard.AddButtons(revealButton, deleteButton);
 
                 await bot.SendMessage(message.Chat.Id, "👀 <i>Information hidden from curious eyes...</i>",
                     ParseMode.Html,

@@ -12,7 +12,7 @@ namespace ModeratorBot.BotFunctionality.Callbacks
 
         protected override async Task ExecuteCoreAsync(CallbackQuery callbackQuery, TelegramBotClient bot)
         {
-            await bot.DeleteMessage(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId);
+            await bot.DeleteMessage(callbackQuery.Message!.Chat.Id, callbackQuery.Message.MessageId);
         }
     }
 }

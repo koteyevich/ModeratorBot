@@ -39,7 +39,7 @@ namespace ModeratorBot.BotFunctionality.Callbacks
 
             if (query.Data == "null")
             {
-                await bot.AnswerCallbackQuery(query.Id, "...");
+                await bot.AnswerCallbackQuery(query.Id);
                 return;
             }
 

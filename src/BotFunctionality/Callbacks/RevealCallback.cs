@@ -24,7 +24,7 @@ namespace ModeratorBot.BotFunctionality.Callbacks
                 page = parsedPage;
             }
 
-            var user = await Database.GetUser(long.Parse(args?[0]), long.Parse(args[1]));
+            var user = await Database.GetUser(long.Parse(args?[0]!), long.Parse(args?[1]!));
 
             var punishments = user.Punishments.ToList();
             int totalPages = (int)Math.Ceiling((double)punishments.Count / punishments_per_page);
@@ -74,13 +74,13 @@ namespace ModeratorBot.BotFunctionality.Callbacks
             if (page > 1)
             {
                 buttons.Add(
-                    InlineKeyboardButton.WithCallbackData("◀️", $"reveal_{args[0]}_{args[1]}_{page - 1}"));
+                    InlineKeyboardButton.WithCallbackData("◀️", $"reveal_{args?[0]!}_{args?[1]!}_{page - 1}"));
             }
 
             buttons.Add(InlineKeyboardButton.WithCallbackData($"📜 {page}/{totalPages}", "null"));
             if (page < totalPages)
             {
-                buttons.Add(InlineKeyboardButton.WithCallbackData("▶️", $"reveal_{args[0]}_{args[1]}_{page + 1}"));
+                buttons.Add(InlineKeyboardButton.WithCallbackData("▶️", $"reveal_{args?[0]!}_{args?[1]!}_{page + 1}"));
             }
 
             var deleteButton = new InlineKeyboardButton("❌", "delete");

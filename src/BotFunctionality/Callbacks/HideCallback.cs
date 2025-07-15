@@ -16,12 +16,13 @@ namespace ModeratorBot.BotFunctionality.Callbacks
         {
             string?[]? args = callbackQuery.Data?.Split('_', StringSplitOptions.RemoveEmptyEntries).Skip(1).ToArray();
 
-            var user = await Database.GetUser(long.Parse(args?[0]), long.Parse(args[1]));
+            var user = await Database.GetUser(long.Parse(args?[0]!), long.Parse(args?[1]!));
 
-            var buttons = new List<InlineKeyboardButton>();
-
-            buttons.Add(new InlineKeyboardButton("🔒", $"reveal_{user.UserId}_{user.GroupId}"));
-            buttons.Add(new InlineKeyboardButton("❌", "delete"));
+            var buttons = new List<InlineKeyboardButton>
+            {
+                new("🔒", $"reveal_{user.UserId}_{user.GroupId}"),
+                new("❌", "delete")
+            };
 
             var replyMarkup = buttons.Count != 0 ? new InlineKeyboardMarkup(buttons) : null;
 
