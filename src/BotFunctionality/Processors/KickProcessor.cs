@@ -8,8 +8,11 @@ namespace ModeratorBot.BotFunctionality.Processors
     {
         public static async Task ProcessKickAsync(Message message, TelegramBotClient bot)
         {
+            // arguments. split by spaces. skips "/kick".
             string?[]? args = message.Text?.Split('\n')[0].Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1)
                 .ToArray();
+
+            // reason for the kick. parses new line.
             string? reason = message.Text?.Contains('\n') == true
                 ? message.Text[(message.Text.IndexOf('\n') + 1)..].Trim()
                 : null;

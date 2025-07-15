@@ -18,7 +18,7 @@ namespace ModeratorBot.BotFunctionality.Commands
 
         protected override async Task ExecuteCoreAsync(Message message, TelegramBotClient bot)
         {
-            await WarnProcessor.ProcessUnmuteAsync(message, bot);
+            await WarnProcessor.ProcessWarnAsync(message, bot);
         }
     }
 }

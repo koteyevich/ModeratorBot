@@ -9,8 +9,11 @@ namespace ModeratorBot.BotFunctionality.Processors
     {
         public static async Task ProcessBanAsync(Message message, TelegramBotClient bot)
         {
+            // arguments. split by spaces. skips "/ban".
             string?[]? args = message.Text?.Split('\n')[0].Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1)
                 .ToArray();
+
+            // reason for the ban. parses new line.
             string? reason = message.Text?.Contains('\n') == true
                 ? message.Text[(message.Text.IndexOf('\n') + 1)..].Trim()
                 : null;

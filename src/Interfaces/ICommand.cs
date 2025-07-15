@@ -24,7 +24,7 @@ namespace ModeratorBot.Interfaces
             if (IsAdminCommand)
             {
                 var me = await bot.GetChatMember(message.Chat.Id, (await bot.GetMe()).Id);
-                var member = await bot.GetChatMember(message.Chat.Id, message.From.Id);
+                var member = await bot.GetChatMember(message.Chat.Id, message.From!.Id);
 
                 if (me.IsAdmin)
                 {

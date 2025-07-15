@@ -1,12 +1,11 @@
-using ModeratorBot.Models;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
 namespace ModeratorBot.BotFunctionality.Processors
 {
-    public class WarnProcessor
+    public static class WarnProcessor
     {
-        public static async Task ProcessUnmuteAsync(Message message, TelegramBotClient bot)
+        public static async Task ProcessWarnAsync(Message message, TelegramBotClient bot)
         {
             string?[]? args = message.Text?.Split('\n')[0].Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1)
                 .ToArray();
@@ -20,7 +19,7 @@ namespace ModeratorBot.BotFunctionality.Processors
                 try
                 {
                     var replyMember = await bot.GetChatMember(message.Chat.Id, message.ReplyToMessage.From!.Id);
-                    await warn(message, replyMember, args, reason, bot);
+                    await warn(message, replyMember, reason, bot);
                 }
                 catch (Exception e)
                 {
@@ -42,18 +41,21 @@ namespace ModeratorBot.BotFunctionality.Processors
                 try
                 {
                     var member = await bot.GetChatMember(message.Chat.Id, userId);
-                    await warn(message, member, args, reason, bot);
+                    await warn(message, member, reason, bot);
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e);
+                    if (e.Message.Contains("PARTICIPANT_ID_INVALID"))
+                    {
+                        throw new Exceptions.Message(e.Message);
+                    }
+
                     throw;
                 }
             }
         }
 
-        private static async Task warn(Message message, ChatMember member, string?[]? args, string? reason,
-            TelegramBotClient bot)
+        private static async Task warn(Message message, ChatMember member, string? reason, TelegramBotClient bot)
         {
             if (!member.IsAdmin)
             {
@@ -65,8 +67,10 @@ namespace ModeratorBot.BotFunctionality.Processors
                 var user = await Database.GetUser(member.User.Id, message.Chat.Id);
                 await Database.AddWarning(message, reason);
 
-                await bot.SendMessage(message.Chat.Id, $"User {user.UserId} has been warned. \n" +
-                                                       $"Amount of warnings: {user.WarningCount + 1}/{Database.MAX_WARNS}");
+                await bot.SendMessage(message.Chat.Id,
+                    $"User {user.UserId} has been warned.\n" +
+                    $"Warnings: {user.WarningCount + 1}/{Database.MAX_WARNS}\n" +
+                    $"Reason: {(string.IsNullOrEmpty(reason) ? "No reason provided" : reason)}");
 
                 if (user.WarningCount + 1 >= Database.MAX_WARNS)
                 {
@@ -75,7 +79,7 @@ namespace ModeratorBot.BotFunctionality.Processors
             }
             else
             {
-                throw new Exceptions.Message("Cannot warn admin");
+                throw new Exceptions.Message("Cannot warn admin.");
             }
         }
     }

@@ -10,7 +10,7 @@ namespace ModeratorBot
         //* the brain of the bot
 
         // Constants
-        private static readonly IPAddress ip = new(new byte[] { 192, 168, 222, 222 });
+        private static readonly IPAddress? ip = new(new byte[] { 192, 168, 222, 222 });
         private const int port = 27017; // Default MongoDB port
         private const string database_name = "moderatorBot";
 
@@ -44,18 +44,24 @@ namespace ModeratorBot
         }
 
         /// <summary>
-        /// Gets a user by his id and current group
+        /// Gets a user by his id and current group id using an original message
         /// </summary>
         /// <param name="message">Original message.</param>
         /// <returns></returns>
         public static async Task<UserModel> GetUser(Message message)
         {
-            var user = await user_collection.Find(u => u.UserId == message.From.Id && u.GroupId == message.Chat.Id)
+            var user = await user_collection.Find(u => u.UserId == message.From!.Id && u.GroupId == message.Chat.Id)
                 .FirstOrDefaultAsync();
 
             return user ?? await createUser(message);
         }
 
+        /// <summary>
+        /// Gets a user by his id and current group id
+        /// </summary>
+        /// <param name="userId">user id</param>
+        /// <param name="chatId">group id</param>
+        /// <returns></returns>
         public static async Task<UserModel> GetUser(long userId, long chatId)
         {
             var user = await user_collection.Find(u => u.UserId == userId && u.GroupId == chatId).FirstOrDefaultAsync();
@@ -67,7 +73,7 @@ namespace ModeratorBot
         {
             var user = new UserModel
             {
-                UserId = message.From.Id,
+                UserId = message.From!.Id,
                 GroupId = message.Chat.Id,
                 Username = message.From.Username
             };
@@ -76,10 +82,17 @@ namespace ModeratorBot
             return user;
         }
 
+        /// <summary>
+        /// Adds a punishment of specified type.
+        /// </summary>
+        /// <param name="message">Original message.</param>
+        /// <param name="punishmentType">Punishment type enum</param>
+        /// <param name="duration">Optional. Duration of the punishment.</param>
+        /// <param name="reason">Optional. Reason for the punishment.</param>
         public static async Task AddPunishment(Message message, PunishmentType punishmentType,
             DateTime? duration = null, string? reason = null)
         {
-            var punishment = new PunishmentModel()
+            var punishment = new PunishmentModel
             {
                 ModeratorId = message.From.Id,
                 ModeratorUsername = message.From.Username,
@@ -92,29 +105,35 @@ namespace ModeratorBot
             {
                 var user = await GetUser(message.ReplyToMessage);
 
-                await user_collection.UpdateOneAsync(u => u.UserId == user.UserId && u.GroupId == message.Chat.Id,
+                await user_collection.UpdateOneAsync(
+                    u => u.UserId == user.UserId && u.GroupId == message.Chat.Id,
                     Builders<UserModel>.Update.AddToSet(u => u.Punishments, punishment));
 
                 Logger.Debug(
-                    "Added punishment type of {PunishmentType} to user {user} in {chat} chat. Until: {duration}. Reason: {reason}",
-                    punishment.Type, user.UserId, message.Chat.Id, duration, reason);
+                    "Added punishment type {PunishmentType} to user {UserId} in chat {ChatId}. Until: {Duration}. Reason: {Reason}",
+                    punishment.Type, user.UserId, message.Chat.Id, duration?.ToString("G") ?? "FOREVER",
+                    reason);
             }
             else
             {
-                string?[]? args = message.Text?.Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1).ToArray();
+                string?[]? args = message.Text?.Split('\n')[0].Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1)
+                    .ToArray();
+                if (args?.Length == 0 || string.IsNullOrEmpty(args[0]) || !long.TryParse(args[0], out long userId))
+                {
+                    throw new Exceptions.Message("Provide a valid user ID when not replying to a message.");
+                }
 
-                long userId = long.Parse(args?[0]!);
                 var user = await GetUser(userId, message.Chat.Id);
 
                 await user_collection.UpdateOneAsync(u => u.UserId == user.UserId && user.GroupId == message.Chat.Id,
                     Builders<UserModel>.Update.AddToSet(u => u.Punishments, punishment));
 
                 Logger.Debug(
-                    "Added punishment type of {PunishmentType} to user {user} in {chat} chat. Until: {duration}. Reason: {reason}",
-                    punishment.Type, user.UserId, message.Chat.Id, duration, reason);
+                    "Added punishment type {PunishmentType} to user {UserId} in chat {ChatId}. Until: {Duration}. Reason: {Reason}",
+                    punishment.Type, user.UserId, message.Chat.Id, duration?.ToString("G") ?? "FOREVER",
+                    reason);
             }
         }
-
 
         public static async Task AddWarning(Message message, string? reason)
         {
@@ -123,18 +142,24 @@ namespace ModeratorBot
                 var user = await GetUser(message.ReplyToMessage);
 
                 await AddPunishment(message, PunishmentType.Warning, reason: reason);
-                await user_collection.UpdateOneAsync(u => u.UserId == user.UserId && u.GroupId == message.Chat.Id,
+                await user_collection.UpdateOneAsync(
+                    u => u.UserId == user.UserId && u.GroupId == message.Chat.Id,
                     Builders<UserModel>.Update.Inc(u => u.WarningCount, 1));
             }
             else
             {
-                string?[]? args = message.Text?.Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1).ToArray();
+                string?[]? args = message.Text?.Split("\n")[0].Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1)
+                    .ToArray();
+                if (args?.Length == 0 || string.IsNullOrEmpty(args[0]) || !long.TryParse(args[0], out long userId))
+                {
+                    throw new Exceptions.Message("Provide a valid user ID when not replying to a message.");
+                }
 
-                long userId = long.Parse(args?[0]!);
                 var user = await GetUser(userId, message.Chat.Id);
 
                 await AddPunishment(message, PunishmentType.Warning, reason: reason);
-                await user_collection.UpdateOneAsync(u => u.UserId == user.UserId && u.GroupId == message.Chat.Id,
+                await user_collection.UpdateOneAsync(
+                    u => u.UserId == user.UserId && u.GroupId == message.Chat.Id,
                     Builders<UserModel>.Update.Inc(u => u.WarningCount, 1));
             }
         }
