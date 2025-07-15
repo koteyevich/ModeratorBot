@@ -25,7 +25,7 @@ namespace ModeratorBot
         /// </summary>
         /// <param name="message">Message log.</param>
         /// <param name="propertyValues">Optional. Serilog's way of doing $"{exampleVariable}", but colorful.</param>
-        public static void Debug(string message, params object[] propertyValues)
+        public static void Debug(string message, params object?[] propertyValues)
         {
             logger.Debug(message, propertyValues);
         }

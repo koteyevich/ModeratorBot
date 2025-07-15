@@ -1,6 +1,5 @@
 using ModeratorBot.BotFunctionality.Processors;
 using ModeratorBot.Interfaces;
-using ModeratorBot.Models;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
