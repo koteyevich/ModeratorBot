@@ -1,6 +1,8 @@
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
+using Telegram.Bot.Types.Enums;
+
 namespace ModeratorBot.BotFunctionality.Processors
 {
     public static class WarnProcessor
@@ -68,9 +70,10 @@ namespace ModeratorBot.BotFunctionality.Processors
                 await Database.AddWarning(message, reason);
 
                 await bot.SendMessage(message.Chat.Id,
-                    $"User {user.UserId} has been warned.\n" +
-                    $"Warnings: {user.WarningCount + 1}/{Database.MAX_WARNS}\n" +
-                    $"Reason: {(string.IsNullOrEmpty(reason) ? "No reason provided" : reason)}");
+                    $"User <code>{user.UserId}</code> has been <b>warned.</b>\n" +
+                    $"<b>Warnings:</b> <i>{user.WarningCount + 1}/{Database.MAX_WARNS}</i>\n" +
+                    $"<b>Reason:</b> <i>{(string.IsNullOrEmpty(reason) ? "No reason provided" : reason)}</i>",
+                    ParseMode.Html);
 
                 if (user.WarningCount + 1 >= Database.MAX_WARNS)
                 {

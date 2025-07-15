@@ -1,6 +1,7 @@
 using ModeratorBot.Models;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 namespace ModeratorBot.BotFunctionality.Processors
 {
@@ -64,8 +65,9 @@ namespace ModeratorBot.BotFunctionality.Processors
                 await bot.UnbanChatMember(message.Chat.Id, member.User.Id, true);
                 await Database.AddPunishment(message, PunishmentType.Unban, reason: reason);
 
-                await bot.SendMessage(message.Chat.Id, $"User {member.User.Id} has been unbanned.\n" +
-                                                       $"Reason: {reason}");
+                await bot.SendMessage(message.Chat.Id,
+                    $"User <code>{member.User.Id}</code> has been <b>unbanned.</b>\n" +
+                    $"<b>Reason:</b> {(string.IsNullOrEmpty(reason) ? "No reason provided" : reason)}", ParseMode.Html);
             }
             else
             {

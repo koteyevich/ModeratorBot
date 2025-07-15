@@ -1,10 +1,11 @@
 using ModeratorBot.Models;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 namespace ModeratorBot.BotFunctionality.Processors
 {
-    public class UnmuteProcessor
+    public static class UnmuteProcessor
     {
         public static async Task ProcessUnmuteAsync(Message message, TelegramBotClient bot)
         {
@@ -64,8 +65,10 @@ namespace ModeratorBot.BotFunctionality.Processors
                 await bot.RestrictChatMember(message.Chat.Id, member.User.Id, new ChatPermissions(true));
                 await Database.AddPunishment(message, PunishmentType.Unmute, reason: reason);
 
-                await bot.SendMessage(message.Chat.Id, $"User {member.User.Id} has been unmuted.\n" +
-                                                       $"Reason: {reason}");
+                await bot.SendMessage(message.Chat.Id,
+                    $"User <code>{member.User.Id}</code> has been <b>unmuted.</b>\n" +
+                    $"<b>Reason:</b> <i>{(string.IsNullOrEmpty(reason) ? "No reason provided" : reason)}</i>",
+                    ParseMode.Html);
             }
             else
             {
