@@ -34,6 +34,8 @@ namespace ModeratorBot.BotFunctionality.Processors
                     {
                         throw new Exceptions.Message(e.Message);
                     }
+
+                    throw;
                 }
             }
             else
