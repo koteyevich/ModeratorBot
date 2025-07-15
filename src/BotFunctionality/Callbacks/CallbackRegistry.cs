@@ -12,7 +12,9 @@ namespace ModeratorBot.BotFunctionality.Callbacks
         {
             var callbackList = new List<ICallback>
             {
-                new TestCallback()
+                new DeleteCallback(),
+                new RevealCallback(),
+                new HideCallback(),
             };
 
             foreach (var cb in callbackList)
