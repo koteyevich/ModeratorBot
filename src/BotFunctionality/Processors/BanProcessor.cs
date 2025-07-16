@@ -2,6 +2,7 @@ using ModeratorBot.BotFunctionality.Helpers;
 using ModeratorBot.Models;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 namespace ModeratorBot.BotFunctionality.Processors
 {
@@ -90,9 +91,10 @@ namespace ModeratorBot.BotFunctionality.Processors
                 await Database.AddPunishment(message, PunishmentType.Ban, duration, reason);
 
                 await bot.SendMessage(message.Chat.Id,
-                    $"User {member.User.Id} has been banned.\n" +
-                    $"Until: {(duration != null ? duration.Value.ToString("G") : "FOREVER")}\n" +
-                    $"Reason: {(string.IsNullOrEmpty(reason) ? "No reason provided" : reason)}");
+                    $"User <code>{member.User.Id}</code> has been <b>banned.</b>\n" +
+                    $"<b>Until:</b> <i>{(duration != null ? duration.Value.ToString("G") : "<b>FOREVER</b>")}</i>\n" +
+                    $"<b>Reason:</b> <i>{(string.IsNullOrEmpty(reason) ? "No reason provided" : reason)}</i>",
+                    ParseMode.Html);
             }
             else
             {

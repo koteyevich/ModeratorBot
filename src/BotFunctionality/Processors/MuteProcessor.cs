@@ -2,6 +2,7 @@ using ModeratorBot.BotFunctionality.Helpers;
 using ModeratorBot.Models;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 namespace ModeratorBot.BotFunctionality.Processors
 {
@@ -89,9 +90,10 @@ namespace ModeratorBot.BotFunctionality.Processors
                 await Database.AddPunishment(message, PunishmentType.Mute, duration, reason);
 
                 await bot.SendMessage(message.Chat.Id,
-                    $"User {member.User.Id} has been muted.\n" +
-                    $"Until: {(duration != null ? TimeZoneInfo.ConvertTimeFromUtc(duration.Value, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time")).ToString("G") : "FOREVER")}\n" +
-                    $"Reason: {(string.IsNullOrEmpty(reason) ? "No reason provided" : reason)}");
+                    $"User <code>{member.User.Id}</code> has been <b>muted.</b>\n" +
+                    $"<b>Until:</b> <i>{(duration != null ? duration.Value.ToString("G") : "FOREVER")}</i>\n" +
+                    $"<b>Reason:</b> <i>{(string.IsNullOrEmpty(reason) ? "No reason provided" : reason)}</i>",
+                    ParseMode.Html);
             }
             else
             {

@@ -1,6 +1,7 @@
 using ModeratorBot.Models;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 namespace ModeratorBot.BotFunctionality.Processors
 {
@@ -33,6 +34,8 @@ namespace ModeratorBot.BotFunctionality.Processors
                     {
                         throw new Exceptions.Message(e.Message);
                     }
+
+                    throw;
                 }
             }
             else
@@ -64,8 +67,10 @@ namespace ModeratorBot.BotFunctionality.Processors
                 await bot.BanChatMember(message.Chat.Id, member.User.Id, DateTime.UtcNow.AddSeconds(30));
                 await Database.AddPunishment(message, PunishmentType.Kick, reason: reason);
 
-                await bot.SendMessage(message.Chat.Id, $"User {member.User.Id} has been kicked.\n" +
-                                                       $"Reason: {(string.IsNullOrEmpty(reason) ? "No reason provided" : reason)}");
+                await bot.SendMessage(message.Chat.Id,
+                    $"User <code>{member.User.Id}</code> has been <b>kicked.</b>\n" +
+                    $"<b>Reason:</b> <i>{(string.IsNullOrEmpty(reason) ? "No reason provided" : reason)}</i>",
+                    ParseMode.Html);
                 await bot.UnbanChatMember(message.Chat.Id, member.User.Id);
             }
             else

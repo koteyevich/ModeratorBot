@@ -94,7 +94,7 @@ namespace ModeratorBot
         {
             var punishment = new PunishmentModel
             {
-                ModeratorId = message.From.Id,
+                ModeratorId = message.From!.Id,
                 ModeratorUsername = message.From.Username,
                 Type = punishmentType,
                 Duration = duration,
@@ -118,7 +118,7 @@ namespace ModeratorBot
             {
                 string?[]? args = message.Text?.Split('\n')[0].Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1)
                     .ToArray();
-                if (args?.Length == 0 || string.IsNullOrEmpty(args[0]) || !long.TryParse(args[0], out long userId))
+                if (args?.Length == 0 || string.IsNullOrEmpty(args?[0]) || !long.TryParse(args[0], out long userId))
                 {
                     throw new Exceptions.Message("Provide a valid user ID when not replying to a message.");
                 }
@@ -150,7 +150,7 @@ namespace ModeratorBot
             {
                 string?[]? args = message.Text?.Split("\n")[0].Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1)
                     .ToArray();
-                if (args?.Length == 0 || string.IsNullOrEmpty(args[0]) || !long.TryParse(args[0], out long userId))
+                if (args?.Length == 0 || string.IsNullOrEmpty(args?[0]) || !long.TryParse(args[0], out long userId))
                 {
                     throw new Exceptions.Message("Provide a valid user ID when not replying to a message.");
                 }

@@ -4,15 +4,15 @@ using Telegram.Bot.Types;
 
 namespace ModeratorBot.BotFunctionality.Callbacks
 {
-    public class TestCallback : CallbackBase
+    public class DeleteCallback : CallbackBase
     {
-        public override string Name => "TestCallback";
+        public override string Name => "delete";
 
-        public override string[] Aliases => ["tc"];
+        public override string[] Aliases => [];
 
         protected override async Task ExecuteCoreAsync(CallbackQuery callbackQuery, TelegramBotClient bot)
         {
-            await bot.AnswerCallbackQuery(callbackQuery.Id, "Test Callback!", showAlert: true);
+            await bot.DeleteMessage(callbackQuery.Message!.Chat.Id, callbackQuery.Message.MessageId);
         }
     }
 }
