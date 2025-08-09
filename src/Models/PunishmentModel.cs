@@ -10,7 +10,8 @@ namespace ModeratorBot.Models
         Ban,
         Unban,
         Kick,
-        Warning
+        Warning,
+        Unwarning
     }
 
     public class PunishmentModel

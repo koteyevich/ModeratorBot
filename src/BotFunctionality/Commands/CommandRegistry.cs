@@ -19,6 +19,7 @@ namespace ModeratorBot.BotFunctionality.Commands
                 new Unban(),
                 new Kick(),
                 new Warn(),
+                new Unwarn(),
                 new Info(),
                 new Config()
             };
