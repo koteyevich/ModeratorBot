@@ -4,11 +4,11 @@ using Telegram.Bot.Types;
 
 namespace ModeratorBot.BotFunctionality.Callbacks
 {
-    public class CallbackRegistry
+    public static class CallbackRegistry
     {
-        private readonly Dictionary<string, ICallback> callbacks = new();
+        private static readonly Dictionary<string, ICallback> callbacks = new();
 
-        public CallbackRegistry()
+        static CallbackRegistry()
         {
             var callbackList = new List<ICallback>
             {
@@ -33,7 +33,7 @@ namespace ModeratorBot.BotFunctionality.Callbacks
         /// </summary>
         /// <param name="query">Used to get the query data</param>
         /// <param name="bot">Used to answer the queries</param>
-        public async Task HandleCallbackAsync(CallbackQuery query, TelegramBotClient bot)
+        public static async Task HandleCallbackAsync(CallbackQuery query, TelegramBotClient bot)
         {
             if (string.IsNullOrWhiteSpace(query.Data)) return;
 

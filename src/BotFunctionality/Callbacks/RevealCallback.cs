@@ -14,17 +14,24 @@ namespace ModeratorBot.BotFunctionality.Callbacks
         public override string Name => "reveal";
         public override string[] Aliases => [];
 
+        public override bool IsAdminCallback => true;
+
         protected override async Task ExecuteCoreAsync(CallbackQuery callbackQuery, TelegramBotClient bot)
         {
             string?[]? args = callbackQuery.Data?.Split('_', StringSplitOptions.RemoveEmptyEntries).Skip(1).ToArray();
 
             int page = 1;
+
+            // if page is specified, set the page to it
             if (args?.Length >= 3 && int.TryParse(args[2], out int parsedPage))
             {
                 page = parsedPage;
             }
 
             var user = await Database.GetUser(long.Parse(args?[0]!), long.Parse(args?[1]!));
+            var group = await Database.GetGroup(callbackQuery.Message!);
+
+            int warnBanThreshold = group.GetConfigValue("WarnBanThreshold", 3);
 
             var punishments = user.Punishments.ToList();
             int totalPages = (int)Math.Ceiling((double)punishments.Count / punishments_per_page);
@@ -37,7 +44,7 @@ namespace ModeratorBot.BotFunctionality.Callbacks
             sb.AppendLine($"<b>Last seen:</b> {user.LastSeen.ToString("G")}\n");
 
             sb.AppendLine($"<b>Message count:</b> {user.MessageCount}");
-            sb.AppendLine($"<b>Warning count:</b> {user.WarningCount}/{Database.MAX_WARNS}\n");
+            sb.AppendLine($"<b>Warning count:</b> {user.WarningCount}/{warnBanThreshold}\n");
 
             sb.AppendLine($"<b>Punishments (Page {page}/{totalPages}): </b>");
 
