@@ -1,4 +1,5 @@
 using ModeratorBot.BotFunctionality.Helpers;
+using ModeratorBot.Models;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
@@ -14,9 +15,9 @@ namespace ModeratorBot.BotFunctionality.Processors
 
             if (args.Length > 0)
             {
-                foreach (object[] setting in group.Config)
+                foreach (ConfigEntry<object> setting in group.Config)
                 {
-                    Logger.Debug($"{setting[0]} - {setting[1]}");
+                    Logger.Debug($"{setting.Name} - {setting.Value}");
                 }
             }
         }

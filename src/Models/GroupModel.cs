@@ -3,22 +3,22 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace ModeratorBot.Models
 {
+    public class ConfigEntry<T>
+    {
+        public string Name { get; set; }
+        public T Value { get; set; }
+        public T DefaultValue { get; set; }
+    }
+
     public class GroupModel
     {
         [BsonId] public ObjectId Id { get; set; }
         public long GroupId { get; init; }
 
         [BsonElement("Config")]
-        public List<object[]> Config { get; } =
-        [
-            new object[] { "WarnBanThreshold", 3 },
-        ];
-
-        public T? GetConfigValue<T>(string key, T? defaultValue = default)
+        public List<ConfigEntry<object>> Config { get; } = new()
         {
-            object[]? item = Config.FirstOrDefault(kv => kv.Length > 0 && kv[0].ToString() == key);
-            if (item == null || item.Length < 2) return defaultValue;
-            return item[1] is T value ? value : defaultValue;
-        }
+            new ConfigEntry<object> { Name = "WarnBanThreshold", Value = 3, DefaultValue = 3 }
+        };
     }
 }

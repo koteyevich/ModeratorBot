@@ -76,7 +76,7 @@ namespace ModeratorBot.BotFunctionality.Processors
                 var user = await Database.GetUser(member.User.Id, message.Chat.Id);
                 var group = await Database.GetGroup(message);
 
-                int warnBanThreshold = group.GetConfigValue("WarnBanThreshold", 3);
+                int warnBanThreshold = (int)group.Config.First(x => x.Name == "WarnBanThreshold").Value;
 
                 if (user.WarningCount >= warnBanThreshold)
                 {

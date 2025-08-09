@@ -31,7 +31,7 @@ namespace ModeratorBot.BotFunctionality.Callbacks
             var user = await Database.GetUser(long.Parse(args?[0]!), long.Parse(args?[1]!));
             var group = await Database.GetGroup(callbackQuery.Message!);
 
-            int warnBanThreshold = group.GetConfigValue("WarnBanThreshold", 3);
+            int warnBanThreshold = (int)group.Config.First(x => x.Name == "WarnBanThreshold").Value;
 
             var punishments = user.Punishments.ToList();
             int totalPages = (int)Math.Ceiling((double)punishments.Count / punishments_per_page);
