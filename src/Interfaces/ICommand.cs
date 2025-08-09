@@ -1,3 +1,4 @@
+using ModeratorBot.Exceptions;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
@@ -33,7 +34,7 @@ namespace ModeratorBot.Interfaces
                 }
                 else
                 {
-                    throw new Exceptions.Message("I do not have admin permissions!!");
+                    throw new MessageException("I do not have admin permissions!!");
                 }
             }
             else

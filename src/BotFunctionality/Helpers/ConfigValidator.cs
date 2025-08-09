@@ -13,14 +13,14 @@ namespace ModeratorBot.BotFunctionality.Helpers
         {
             if (!config_types.TryGetValue(name, out var expectedType))
             {
-                throw new Message($"Unknown config key: {name}");
+                throw new MessageException($"Unknown config key: {name}");
             }
 
             if (expectedType == typeof(int))
             {
                 if (int.TryParse(inputValue, out int intValue))
                     return intValue;
-                throw new Message($"Value for {name} must be a valid integer.");
+                throw new MessageException($"Value for {name} must be a valid integer.");
             }
 
             if (expectedType == typeof(string))
@@ -32,10 +32,10 @@ namespace ModeratorBot.BotFunctionality.Helpers
             {
                 if (bool.TryParse(inputValue, out bool boolValue))
                     return boolValue;
-                throw new Message($"Value for {name} must be a valid boolean (true/false).");
+                throw new MessageException($"Value for {name} must be a valid boolean (true/false).");
             }
 
-            throw new Message($"Unsupported type for {name}: {expectedType}");
+            throw new MessageException($"Unsupported type for {name}: {expectedType}");
         }
     }
 }

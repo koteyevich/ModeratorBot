@@ -1,5 +1,6 @@
 ﻿using ModeratorBot.BotFunctionality.Callbacks;
 using ModeratorBot.BotFunctionality.Commands;
+using ModeratorBot.Exceptions;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -112,7 +113,7 @@ namespace ModeratorBot
         /// <param name="chatId">used to send the error messages in chat where the error happened</param>
         private static async Task OnError(Exception? exception, long chatId)
         {
-            if (exception is Exceptions.Message)
+            if (exception is MessageException)
             {
                 await bot!.SendMessage(chatId,
                     $"<b>Ah!</b> <i>Something bad happened...</i>\n" +

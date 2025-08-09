@@ -7,9 +7,9 @@ using Telegram.Bot.Types.Enums;
 
 namespace ModeratorBot.BotFunctionality.Processors
 {
-    public static class UnbanProcessor
+    public static class UnwarnProcessor
     {
-        public static async Task ProcessUnbanAsync(Message message, TelegramBotClient bot)
+        public static async Task ProcessUnwarnAsync(Message message, TelegramBotClient bot)
         {
             string?[] args = Parser.ParseArguments(message.Text!);
             string? reason = Parser.ParseReason(message.Text!);
@@ -21,7 +21,7 @@ namespace ModeratorBot.BotFunctionality.Processors
                 try
                 {
                     var replyMember = await bot.GetChatMember(message.Chat.Id, message.ReplyToMessage.From!.Id);
-                    await unban(message, replyMember, reason, bot);
+                    await unwarn(message, replyMember, reason, bot);
                 }
                 catch (Exception e)
                 {
@@ -41,7 +41,7 @@ namespace ModeratorBot.BotFunctionality.Processors
                 try
                 {
                     var member = await bot.GetChatMember(message.Chat.Id, userId);
-                    await unban(message, member, reason, bot);
+                    await unwarn(message, member, reason, bot);
                 }
                 catch (Exception e)
                 {
@@ -55,20 +55,27 @@ namespace ModeratorBot.BotFunctionality.Processors
             }
         }
 
-        private static async Task unban(Message message, ChatMember member, string? reason, TelegramBotClient bot)
+        private static async Task unwarn(Message message, ChatMember member, string? reason, TelegramBotClient bot)
         {
             if (!member.IsAdmin)
             {
-                await bot.UnbanChatMember(message.Chat.Id, member.User.Id, true);
-                await Database.AddPunishment(message, PunishmentType.Unban, reason: reason);
+                var user = await Database.GetUser(member.User.Id, message.Chat.Id);
+                if (user.WarningCount <= 0)
+                {
+                    await bot.SendMessage(message.Chat.Id, "This user has no warnings.");
+                    return;
+                }
+
+                await Database.AddUnwarning(message, reason: reason);
 
                 await bot.SendMessage(message.Chat.Id,
-                    $"User <code>{member.User.Id}</code> has been <b>unbanned.</b>\n" +
-                    $"<b>Reason:</b> {(string.IsNullOrEmpty(reason) ? "No reason provided" : reason)}", ParseMode.Html);
+                    $"User <code>{member.User.Id}</code> has been <b>unwarned.</b>\n" +
+                    $"<b>Reason:</b> <i>{(string.IsNullOrEmpty(reason) ? "No reason provided" : reason)}</i>",
+                    ParseMode.Html);
             }
             else
             {
-                throw new MessageException("Cannot unrestrict admin");
+                throw new MessageException("Cannot unrestrict admin.");
             }
         }
     }
