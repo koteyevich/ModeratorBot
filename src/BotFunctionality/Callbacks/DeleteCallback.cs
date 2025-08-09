@@ -10,6 +10,8 @@ namespace ModeratorBot.BotFunctionality.Callbacks
 
         public override string[] Aliases => [];
 
+        public override bool IsAdminCallback => true;
+
         protected override async Task ExecuteCoreAsync(CallbackQuery callbackQuery, TelegramBotClient bot)
         {
             await bot.DeleteMessage(callbackQuery.Message!.Chat.Id, callbackQuery.Message.MessageId);

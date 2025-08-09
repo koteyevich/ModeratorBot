@@ -1,6 +1,9 @@
 using System.Net;
+using ModeratorBot.BotFunctionality.Helpers;
 using ModeratorBot.Models;
+using MongoDB.Bson;
 using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 using Telegram.Bot.Types;
 
 namespace ModeratorBot
@@ -11,7 +14,7 @@ namespace ModeratorBot
 
         // Constants
         private static readonly IPAddress? ip = new(new byte[] { 192, 168, 222, 222 });
-        private const int port = 27017; // Default MongoDB port
+        private const int port = 27017;
         private const string database_name = "moderatorBot";
 
         // MongoDB client and collections
@@ -19,27 +22,42 @@ namespace ModeratorBot
         private static readonly IMongoDatabase mongo_database;
 
         private static readonly IMongoCollection<UserModel> user_collection;
-
-        public const short MAX_WARNS = 3;
+        private static readonly IMongoCollection<GroupModel> group_collection;
 
         static Database()
         {
-            try
-            {
-                string connectionString = $"mongodb://{Secrets.DB_USERNAME}:{Secrets.DB_PASSWORD}@{ip}:{port}";
-                Logger.Debug("Initializing connecting to MongoDB with ip {Host} and port {Port}. User: {User}", ip,
-                    port,
-                    Secrets.DB_USERNAME);
+            int retryCount = 0;
 
-                client = new MongoClient(connectionString);
-                mongo_database = client.GetDatabase(database_name);
-                user_collection = mongo_database.GetCollection<UserModel>("Users");
-
-                Logger.Info("MongoDB connection successful.");
-            }
-            catch (Exception ex)
+            while (true)
             {
-                throw new Exception("Could not connect to MongoDB.", ex);
+                try
+                {
+                    string connectionString =
+                        $"mongodb://{Secrets.DB_USERNAME}:{Secrets.DB_PASSWORD}@{ip}:{port}";
+                    Logger.Debug(
+                        "Attempting connection to MongoDB with ip {Host} and port {Port}. User: {User} (Attempt {Attempt})",
+                        ip, port, Secrets.DB_USERNAME, retryCount + 1);
+
+                    var settings = MongoClientSettings.FromConnectionString(connectionString);
+                    client = new MongoClient(settings);
+                    mongo_database = client.GetDatabase(database_name);
+
+                    // Validate connection with a ping
+                    mongo_database.RunCommandAsync((Command<BsonDocument>)"{ping:1}").Wait();
+
+                    user_collection = mongo_database.GetCollection<UserModel>("Users");
+                    group_collection = mongo_database.GetCollection<GroupModel>("Groups");
+
+                    Logger.Info("MongoDB connection successful after {Attempts} attempts.",
+                        retryCount + 1);
+                    break;
+                }
+                catch (Exception)
+                {
+                    retryCount++;
+                    Logger.Error(
+                        "Failed to connect to MongoDB on attempt {Attempt}.", retryCount);
+                }
             }
         }
 
@@ -82,6 +100,25 @@ namespace ModeratorBot
             return user;
         }
 
+        public static async Task<GroupModel> GetGroup(Message message)
+        {
+            var group = await group_collection.Find(g => g.GroupId == message.Chat.Id)
+                .FirstOrDefaultAsync();
+
+            return group ?? await createGroup(message);
+        }
+
+        private static async Task<GroupModel> createGroup(Message message)
+        {
+            var group = new GroupModel()
+            {
+                GroupId = message.Chat.Id,
+            };
+
+            await group_collection.InsertOneAsync(group);
+            return group;
+        }
+
         /// <summary>
         /// Adds a punishment of specified type.
         /// </summary>
@@ -116,9 +153,8 @@ namespace ModeratorBot
             }
             else
             {
-                string?[]? args = message.Text?.Split('\n')[0].Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1)
-                    .ToArray();
-                if (args?.Length == 0 || string.IsNullOrEmpty(args?[0]) || !long.TryParse(args[0], out long userId))
+                string?[] args = Parser.ParseArguments(message.Text!);
+                if (args.Length == 0 || string.IsNullOrEmpty(args[0]) || !long.TryParse(args[0], out long userId))
                 {
                     throw new Exceptions.Message("Provide a valid user ID when not replying to a message.");
                 }
@@ -135,6 +171,11 @@ namespace ModeratorBot
             }
         }
 
+        /// <summary>
+        /// Adds a warning to a user.
+        /// </summary>
+        /// <param name="message">Original message.</param>
+        /// <param name="reason">Optional. Reason for the warning</param>
         public static async Task AddWarning(Message message, string? reason)
         {
             if (message.ReplyToMessage != null)
@@ -148,9 +189,8 @@ namespace ModeratorBot
             }
             else
             {
-                string?[]? args = message.Text?.Split("\n")[0].Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1)
-                    .ToArray();
-                if (args?.Length == 0 || string.IsNullOrEmpty(args?[0]) || !long.TryParse(args[0], out long userId))
+                string?[] args = Parser.ParseArguments(message.Text!);
+                if (args.Length == 0 || string.IsNullOrEmpty(args[0]) || !long.TryParse(args[0], out long userId))
                 {
                     throw new Exceptions.Message("Provide a valid user ID when not replying to a message.");
                 }
@@ -164,7 +204,12 @@ namespace ModeratorBot
             }
         }
 
-        public static async Task ResetWarning(long userId, long chatId)
+        /// <summary>
+        /// Resets warnings of a user.
+        /// </summary>
+        /// <param name="userId">User id.</param>
+        /// <param name="chatId">Chat id</param>
+        public static async Task ResetWarnings(long userId, long chatId)
         {
             var user = await GetUser(userId, chatId);
 
@@ -180,6 +225,35 @@ namespace ModeratorBot
                 Builders<UserModel>.Update.Inc(u => u.MessageCount, 1));
             await user_collection.UpdateOneAsync(u => u.UserId == user.UserId && u.GroupId == message.Chat.Id,
                 Builders<UserModel>.Update.Set(u => u.LastSeen, DateTime.UtcNow));
+        }
+
+        public static async Task UpdateGroupConfigSetting(Message message, string name, string inputValue)
+        {
+            object validatedValue = ConfigValidator.ValidateAndConvert(name, inputValue);
+
+            var filter = Builders<GroupModel>.Filter.And(
+                Builders<GroupModel>.Filter.Eq(g => g.GroupId, message.Chat.Id),
+                Builders<GroupModel>.Filter.ElemMatch(g => g.Config, c => c.Name == name)
+            );
+
+            var update = Builders<GroupModel>.Update.Set(g => g.Config.FirstMatchingElement().Value, validatedValue);
+
+            var result = await group_collection.UpdateOneAsync(filter, update);
+
+            if (result.MatchedCount == 0)
+            {
+                Logger.Warn("No group or config entry found with name {Name} for GroupId {GroupId}", name,
+                    message.Chat.Id);
+
+                var newEntry = new ConfigEntry<object>
+                    { Name = name, Value = validatedValue, DefaultValue = validatedValue };
+                var pushUpdate = Builders<GroupModel>.Update.Push(g => g.Config, newEntry);
+                await group_collection.UpdateOneAsync(
+                    Builders<GroupModel>.Filter.Eq(g => g.GroupId, message.Chat.Id),
+                    pushUpdate,
+                    new UpdateOptions { IsUpsert = true });
+                Logger.Info("Added new config entry {Name} for GroupId {GroupId}", name, message.Chat.Id);
+            }
         }
     }
 }

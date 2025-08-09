@@ -12,6 +12,8 @@ namespace ModeratorBot.BotFunctionality.Callbacks
 
         public override string[] Aliases => [];
 
+        public override bool IsAdminCallback => true;
+
         protected override async Task ExecuteCoreAsync(CallbackQuery callbackQuery, TelegramBotClient bot)
         {
             string?[]? args = callbackQuery.Data?.Split('_', StringSplitOptions.RemoveEmptyEntries).Skip(1).ToArray();

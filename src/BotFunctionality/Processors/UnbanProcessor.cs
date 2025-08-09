@@ -1,3 +1,4 @@
+using ModeratorBot.BotFunctionality.Helpers;
 using ModeratorBot.Models;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -9,15 +10,8 @@ namespace ModeratorBot.BotFunctionality.Processors
     {
         public static async Task ProcessUnbanAsync(Message message, TelegramBotClient bot)
         {
-            // arguments. split by spaces. skip "/unban".
-            string?[]? args = message.Text?.Split('\n')[0].Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1)
-                .ToArray();
-
-            // reason for the unbanning. parses new line.
-            string? reason = message.Text?.Contains('\n') == true
-                ? message.Text[(message.Text.IndexOf('\n') + 1)..].Trim()
-                : null;
-            if (string.IsNullOrWhiteSpace(reason)) reason = null;
+            string?[] args = Parser.ParseArguments(message.Text!);
+            string? reason = Parser.ParseReason(message.Text!);
 
             if (message.ReplyToMessage != null)
             {
@@ -38,7 +32,7 @@ namespace ModeratorBot.BotFunctionality.Processors
             }
             else
             {
-                if (args?.Length == 0 || string.IsNullOrEmpty(args?[0]) || !long.TryParse(args[0], out long userId))
+                if (args.Length == 0 || string.IsNullOrEmpty(args[0]) || !long.TryParse(args[0], out long userId))
                 {
                     throw new Exceptions.Message("Provide a valid user ID when not replying to a message.");
                 }

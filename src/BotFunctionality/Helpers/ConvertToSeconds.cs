@@ -1,6 +1,6 @@
 namespace ModeratorBot.BotFunctionality.Helpers
 {
-    public class ConvertToSeconds
+    public static class ConvertToSeconds
     {
         public static long Convert(string? timeString)
         {

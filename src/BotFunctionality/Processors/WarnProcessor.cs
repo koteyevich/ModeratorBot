@@ -1,6 +1,6 @@
+using ModeratorBot.BotFunctionality.Helpers;
 using Telegram.Bot;
 using Telegram.Bot.Types;
-
 using Telegram.Bot.Types.Enums;
 
 namespace ModeratorBot.BotFunctionality.Processors
@@ -9,12 +9,8 @@ namespace ModeratorBot.BotFunctionality.Processors
     {
         public static async Task ProcessWarnAsync(Message message, TelegramBotClient bot)
         {
-            string?[]? args = message.Text?.Split('\n')[0].Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1)
-                .ToArray();
-            string? reason = message.Text?.Contains('\n') == true
-                ? message.Text[(message.Text.IndexOf('\n') + 1)..].Trim()
-                : null;
-            if (string.IsNullOrWhiteSpace(reason)) reason = null;
+            string?[] args = Parser.ParseArguments(message.Text!);
+            string? reason = Parser.ParseReason(message.Text!);
 
             if (message.ReplyToMessage != null)
             {
@@ -35,7 +31,7 @@ namespace ModeratorBot.BotFunctionality.Processors
             }
             else
             {
-                if (args?.Length == 0 || string.IsNullOrEmpty(args?[0]) || !long.TryParse(args[0], out long userId))
+                if (args.Length == 0 || string.IsNullOrEmpty(args[0]) || !long.TryParse(args[0], out long userId))
                 {
                     throw new Exceptions.Message("Provide a valid user ID when not replying to a message.");
                 }
@@ -67,15 +63,19 @@ namespace ModeratorBot.BotFunctionality.Processors
                 }
 
                 var user = await Database.GetUser(member.User.Id, message.Chat.Id);
+                var group = await Database.GetGroup(message);
+
+                int warnBanThreshold = (int)group.Config.First(x => x.Name == "WarnBanThreshold").Value;
+
                 await Database.AddWarning(message, reason);
 
                 await bot.SendMessage(message.Chat.Id,
                     $"User <code>{user.UserId}</code> has been <b>warned.</b>\n" +
-                    $"<b>Warnings:</b> <i>{user.WarningCount + 1}/{Database.MAX_WARNS}</i>\n" +
+                    $"<b>Warnings:</b> <i>{user.WarningCount + 1}/{warnBanThreshold}</i>\n" +
                     $"<b>Reason:</b> <i>{(string.IsNullOrEmpty(reason) ? "No reason provided" : reason)}</i>",
                     ParseMode.Html);
 
-                if (user.WarningCount + 1 >= Database.MAX_WARNS)
+                if (user.WarningCount + 1 >= warnBanThreshold)
                 {
                     await BanProcessor.ProcessBanAsync(message, bot);
                 }

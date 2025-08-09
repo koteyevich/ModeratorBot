@@ -1,3 +1,4 @@
+using ModeratorBot.BotFunctionality.Helpers;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -9,9 +10,12 @@ namespace ModeratorBot.BotFunctionality.Processors
     {
         public static async Task ProcessInfoAsync(Message message, TelegramBotClient bot)
         {
-            string?[]? args = message.Text?.Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1).ToArray();
+            string?[] args = Parser.ParseArguments(message.Text!);
+
             if (message.ReplyToMessage != null)
             {
+                // try/catching to catch invalid id errors and send the exceptions as different exceptions that won't
+                // make logs extremely trashy.
                 try
                 {
                     var replyMember = await bot.GetChatMember(message.Chat.Id, message.ReplyToMessage.From!.Id);
@@ -29,7 +33,7 @@ namespace ModeratorBot.BotFunctionality.Processors
             }
             else
             {
-                if (args?.Length == 0 || string.IsNullOrEmpty(args?[0]) || !long.TryParse(args[0], out long userId))
+                if (args.Length == 0 || string.IsNullOrEmpty(args[0]) || !long.TryParse(args[0], out long userId))
                 {
                     throw new Exceptions.Message("Provide a valid user ID when not replying to a message.");
                 }

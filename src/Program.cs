@@ -12,7 +12,6 @@ namespace ModeratorBot
         private static CancellationTokenSource? cts;
 
         private static CommandRegistry? commandRegistry;
-        private static CallbackRegistry? callbackRegistry;
 
         /// <summary>
         /// Bot initialization.
@@ -38,7 +37,6 @@ namespace ModeratorBot
             Logger.Info("Bot connected as {me.Username} in {server} server.", $"@{me.Username}", Secrets.SERVER);
 
             commandRegistry = new CommandRegistry();
-            callbackRegistry = new CallbackRegistry();
 
             bot.OnMessage += async (message, _) => { await OnMessage(message); };
             bot.OnUpdate += OnUpdate;
@@ -96,7 +94,7 @@ namespace ModeratorBot
                 case { CallbackQuery: not null }:
                     try
                     {
-                        await callbackRegistry?.HandleCallbackAsync(update.CallbackQuery!, bot!)!;
+                        await CallbackRegistry.HandleCallbackAsync(update.CallbackQuery!, bot!);
                     }
                     catch (Exception? ex)
                     {
