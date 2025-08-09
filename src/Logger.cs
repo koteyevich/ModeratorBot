@@ -56,12 +56,18 @@ namespace ModeratorBot
         /// </summary>
         /// <param name="message">Message log.</param>
         /// <param name="ex">Optional. Include the whole exception.</param>
-        public static void Error(string message, Exception? ex = null)
+        /// <param name="propertyValues">Optional. Serilog's way of doing $"{exampleVariable}", but colorful.</param>
+        public static void Error(string message, Exception? ex = null, params object?[] propertyValues)
         {
             if (ex != null)
-                logger.Error(ex, message);
+                logger.Error(ex, message, propertyValues);
             else
-                logger.Error(message);
+                logger.Error(message, propertyValues);
+        }
+
+        public static void Error(string message, params object?[] propertyValues)
+        {
+            logger.Error(message, propertyValues);
         }
 
         /// <summary>

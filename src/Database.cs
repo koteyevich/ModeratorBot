@@ -1,5 +1,6 @@
 using System.Net;
 using ModeratorBot.Models;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using Telegram.Bot.Types;
 
@@ -11,7 +12,7 @@ namespace ModeratorBot
 
         // Constants
         private static readonly IPAddress? ip = new(new byte[] { 192, 168, 222, 222 });
-        private const int port = 27017; // Default MongoDB port
+        private const int port = 27017;
         private const string database_name = "moderatorBot";
 
         // MongoDB client and collections
@@ -19,27 +20,42 @@ namespace ModeratorBot
         private static readonly IMongoDatabase mongo_database;
 
         private static readonly IMongoCollection<UserModel> user_collection;
-
-        public const short MAX_WARNS = 3;
+        private static readonly IMongoCollection<GroupModel> group_collection;
 
         static Database()
         {
-            try
-            {
-                string connectionString = $"mongodb://{Secrets.DB_USERNAME}:{Secrets.DB_PASSWORD}@{ip}:{port}";
-                Logger.Debug("Initializing connecting to MongoDB with ip {Host} and port {Port}. User: {User}", ip,
-                    port,
-                    Secrets.DB_USERNAME);
+            int retryCount = 0;
 
-                client = new MongoClient(connectionString);
-                mongo_database = client.GetDatabase(database_name);
-                user_collection = mongo_database.GetCollection<UserModel>("Users");
-
-                Logger.Info("MongoDB connection successful.");
-            }
-            catch (Exception ex)
+            while (true)
             {
-                throw new Exception("Could not connect to MongoDB.", ex);
+                try
+                {
+                    string connectionString =
+                        $"mongodb://{Secrets.DB_USERNAME}:{Secrets.DB_PASSWORD}@{ip}:{port}";
+                    Logger.Debug(
+                        "Attempting connection to MongoDB with ip {Host} and port {Port}. User: {User} (Attempt {Attempt})",
+                        ip, port, Secrets.DB_USERNAME, retryCount + 1);
+
+                    var settings = MongoClientSettings.FromConnectionString(connectionString);
+                    client = new MongoClient(settings);
+                    mongo_database = client.GetDatabase(database_name);
+
+                    // Validate connection with a ping
+                    mongo_database.RunCommandAsync((Command<BsonDocument>)"{ping:1}").Wait();
+
+                    user_collection = mongo_database.GetCollection<UserModel>("Users");
+                    group_collection = mongo_database.GetCollection<GroupModel>("Groups");
+
+                    Logger.Info("MongoDB connection successful after {Attempts} attempts.",
+                        retryCount + 1);
+                    break;
+                }
+                catch (Exception)
+                {
+                    retryCount++;
+                    Logger.Error(
+                        "Failed to connect to MongoDB on attempt {Attempt}.", retryCount);
+                }
             }
         }
 
@@ -80,6 +96,25 @@ namespace ModeratorBot
 
             await user_collection.InsertOneAsync(user);
             return user;
+        }
+
+        public static async Task<GroupModel> GetGroup(Message message)
+        {
+            var group = await group_collection.FindAsync(g => g.GroupId == message.Chat.Id).Result
+                .FirstOrDefaultAsync();
+
+            return group ?? await createGroup(message);
+        }
+
+        private static async Task<GroupModel> createGroup(Message message)
+        {
+            var group = new GroupModel()
+            {
+                GroupId = message.Chat.Id,
+            };
+
+            await group_collection.InsertOneAsync(group);
+            return group;
         }
 
         /// <summary>
@@ -135,6 +170,11 @@ namespace ModeratorBot
             }
         }
 
+        /// <summary>
+        /// Adds a warning to a user.
+        /// </summary>
+        /// <param name="message">Original message.</param>
+        /// <param name="reason">Optional. Reason for the warning</param>
         public static async Task AddWarning(Message message, string? reason)
         {
             if (message.ReplyToMessage != null)
@@ -164,7 +204,12 @@ namespace ModeratorBot
             }
         }
 
-        public static async Task ResetWarning(long userId, long chatId)
+        /// <summary>
+        /// Resets warnings of a user.
+        /// </summary>
+        /// <param name="userId">User id.</param>
+        /// <param name="chatId">Chat id</param>
+        public static async Task ResetWarnings(long userId, long chatId)
         {
             var user = await GetUser(userId, chatId);
 
