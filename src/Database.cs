@@ -1,5 +1,6 @@
 using System.Net;
 using ModeratorBot.BotFunctionality.Helpers;
+using ModeratorBot.Exceptions;
 using ModeratorBot.Models;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -110,7 +111,7 @@ namespace ModeratorBot
 
         private static async Task<GroupModel> createGroup(Message message)
         {
-            var group = new GroupModel()
+            var group = new GroupModel
             {
                 GroupId = message.Chat.Id,
             };
@@ -156,7 +157,7 @@ namespace ModeratorBot
                 string?[] args = Parser.ParseArguments(message.Text!);
                 if (args.Length == 0 || string.IsNullOrEmpty(args[0]) || !long.TryParse(args[0], out long userId))
                 {
-                    throw new Exceptions.Message("Provide a valid user ID when not replying to a message.");
+                    throw new MessageException("Provide a valid user ID when not replying to a message.");
                 }
 
                 var user = await GetUser(userId, message.Chat.Id);
@@ -192,7 +193,7 @@ namespace ModeratorBot
                 string?[] args = Parser.ParseArguments(message.Text!);
                 if (args.Length == 0 || string.IsNullOrEmpty(args[0]) || !long.TryParse(args[0], out long userId))
                 {
-                    throw new Exceptions.Message("Provide a valid user ID when not replying to a message.");
+                    throw new MessageException("Provide a valid user ID when not replying to a message.");
                 }
 
                 var user = await GetUser(userId, message.Chat.Id);

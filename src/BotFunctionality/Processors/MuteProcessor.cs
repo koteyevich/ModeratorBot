@@ -1,4 +1,5 @@
 using ModeratorBot.BotFunctionality.Helpers;
+using ModeratorBot.Exceptions;
 using ModeratorBot.Models;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -17,7 +18,7 @@ namespace ModeratorBot.BotFunctionality.Processors
             {
                 if (args.Length > 0 && long.TryParse(args[0], out _))
                 {
-                    throw new Exceptions.Message(
+                    throw new MessageException(
                         "When replying, provide only a duration (e.g., '1d12h30m') or no arguments for an infinite mute.");
                 }
 
@@ -32,7 +33,7 @@ namespace ModeratorBot.BotFunctionality.Processors
                 {
                     if (e.Message.Contains("PARTICIPANT_ID_INVALID"))
                     {
-                        throw new Exceptions.Message(e.Message);
+                        throw new MessageException(e.Message);
                     }
 
                     throw;
@@ -42,7 +43,7 @@ namespace ModeratorBot.BotFunctionality.Processors
             {
                 if (args.Length == 0 || string.IsNullOrEmpty(args[0]) || !long.TryParse(args[0], out long userId))
                 {
-                    throw new Exceptions.Message("Provide a valid user ID when not replying to a message.");
+                    throw new MessageException("Provide a valid user ID when not replying to a message.");
                 }
 
                 try
@@ -54,7 +55,7 @@ namespace ModeratorBot.BotFunctionality.Processors
                 {
                     if (e.Message.Contains("PARTICIPANT_ID_INVALID"))
                     {
-                        throw new Exceptions.Message(e.Message);
+                        throw new MessageException(e.Message);
                     }
 
                     throw;
@@ -73,7 +74,7 @@ namespace ModeratorBot.BotFunctionality.Processors
                     long seconds = ConvertToSeconds.Convert(args[dateIndex]);
                     if (seconds == 0)
                     {
-                        throw new Exceptions.Message("Invalid duration format. Use formats like '1d12h30m'.");
+                        throw new MessageException("Invalid duration format. Use formats like '1d12h30m'.");
                     }
 
                     duration = DateTime.UtcNow.AddSeconds(seconds);
@@ -91,7 +92,7 @@ namespace ModeratorBot.BotFunctionality.Processors
             }
             else
             {
-                throw new Exceptions.Message("Cannot restrict admin.");
+                throw new MessageException("Cannot restrict admin.");
             }
         }
     }

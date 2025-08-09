@@ -1,4 +1,5 @@
 using ModeratorBot.BotFunctionality.Helpers;
+using ModeratorBot.Exceptions;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -23,7 +24,7 @@ namespace ModeratorBot.BotFunctionality.Processors
                 {
                     if (e.Message.Contains("PARTICIPANT_ID_INVALID"))
                     {
-                        throw new Exceptions.Message(e.Message);
+                        throw new MessageException(e.Message);
                     }
 
                     throw;
@@ -33,7 +34,7 @@ namespace ModeratorBot.BotFunctionality.Processors
             {
                 if (args.Length == 0 || string.IsNullOrEmpty(args[0]) || !long.TryParse(args[0], out long userId))
                 {
-                    throw new Exceptions.Message("Provide a valid user ID when not replying to a message.");
+                    throw new MessageException("Provide a valid user ID when not replying to a message.");
                 }
 
                 try
@@ -45,7 +46,7 @@ namespace ModeratorBot.BotFunctionality.Processors
                 {
                     if (e.Message.Contains("PARTICIPANT_ID_INVALID"))
                     {
-                        throw new Exceptions.Message(e.Message);
+                        throw new MessageException(e.Message);
                     }
 
                     throw;
@@ -59,7 +60,7 @@ namespace ModeratorBot.BotFunctionality.Processors
             {
                 if (member.User.IsBot)
                 {
-                    throw new Exceptions.Message("I can't do it to my kind... (Warning bots is unallowed)");
+                    throw new MessageException("I can't do it to my kind... (Warning bots is unallowed)");
                 }
 
                 var user = await Database.GetUser(member.User.Id, message.Chat.Id);
@@ -82,7 +83,7 @@ namespace ModeratorBot.BotFunctionality.Processors
             }
             else
             {
-                throw new Exceptions.Message("Cannot warn admin.");
+                throw new MessageException("Cannot warn admin.");
             }
         }
     }
