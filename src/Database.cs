@@ -1,7 +1,9 @@
 using System.Net;
+using ModeratorBot.BotFunctionality.Helpers;
 using ModeratorBot.Models;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 using Telegram.Bot.Types;
 
 namespace ModeratorBot
@@ -100,7 +102,7 @@ namespace ModeratorBot
 
         public static async Task<GroupModel> GetGroup(Message message)
         {
-            var group = await group_collection.FindAsync(g => g.GroupId == message.Chat.Id).Result
+            var group = await group_collection.Find(g => g.GroupId == message.Chat.Id)
                 .FirstOrDefaultAsync();
 
             return group ?? await createGroup(message);
@@ -151,9 +153,8 @@ namespace ModeratorBot
             }
             else
             {
-                string?[]? args = message.Text?.Split('\n')[0].Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1)
-                    .ToArray();
-                if (args?.Length == 0 || string.IsNullOrEmpty(args?[0]) || !long.TryParse(args[0], out long userId))
+                string?[] args = Parser.ParseArguments(message.Text!);
+                if (args.Length == 0 || string.IsNullOrEmpty(args[0]) || !long.TryParse(args[0], out long userId))
                 {
                     throw new Exceptions.Message("Provide a valid user ID when not replying to a message.");
                 }
@@ -188,9 +189,8 @@ namespace ModeratorBot
             }
             else
             {
-                string?[]? args = message.Text?.Split("\n")[0].Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1)
-                    .ToArray();
-                if (args?.Length == 0 || string.IsNullOrEmpty(args?[0]) || !long.TryParse(args[0], out long userId))
+                string?[] args = Parser.ParseArguments(message.Text!);
+                if (args.Length == 0 || string.IsNullOrEmpty(args[0]) || !long.TryParse(args[0], out long userId))
                 {
                     throw new Exceptions.Message("Provide a valid user ID when not replying to a message.");
                 }
@@ -225,6 +225,35 @@ namespace ModeratorBot
                 Builders<UserModel>.Update.Inc(u => u.MessageCount, 1));
             await user_collection.UpdateOneAsync(u => u.UserId == user.UserId && u.GroupId == message.Chat.Id,
                 Builders<UserModel>.Update.Set(u => u.LastSeen, DateTime.UtcNow));
+        }
+
+        public static async Task UpdateGroupConfigSetting(Message message, string name, string inputValue)
+        {
+            object validatedValue = ConfigValidator.ValidateAndConvert(name, inputValue);
+
+            var filter = Builders<GroupModel>.Filter.And(
+                Builders<GroupModel>.Filter.Eq(g => g.GroupId, message.Chat.Id),
+                Builders<GroupModel>.Filter.ElemMatch(g => g.Config, c => c.Name == name)
+            );
+
+            var update = Builders<GroupModel>.Update.Set(g => g.Config.FirstMatchingElement().Value, validatedValue);
+
+            var result = await group_collection.UpdateOneAsync(filter, update);
+
+            if (result.MatchedCount == 0)
+            {
+                Logger.Warn("No group or config entry found with name {Name} for GroupId {GroupId}", name,
+                    message.Chat.Id);
+
+                var newEntry = new ConfigEntry<object>
+                    { Name = name, Value = validatedValue, DefaultValue = validatedValue };
+                var pushUpdate = Builders<GroupModel>.Update.Push(g => g.Config, newEntry);
+                await group_collection.UpdateOneAsync(
+                    Builders<GroupModel>.Filter.Eq(g => g.GroupId, message.Chat.Id),
+                    pushUpdate,
+                    new UpdateOptions { IsUpsert = true });
+                Logger.Info("Added new config entry {Name} for GroupId {GroupId}", name, message.Chat.Id);
+            }
         }
     }
 }
