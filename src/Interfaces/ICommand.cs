@@ -31,6 +31,8 @@ namespace ModeratorBot.Interfaces
                 {
                     if (member.IsAdmin)
                         await ExecuteCoreAsync(message, bot);
+                    else
+                        await bot.DeleteMessage(message.Chat.Id, message.Id);
                 }
                 else
                 {
