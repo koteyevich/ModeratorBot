@@ -65,7 +65,7 @@ namespace ModeratorBot.BotFunctionality.Callbacks
                     sb.AppendLine($"Moderator: {punishment.ModeratorId}");
                     if (punishment.Duration != null)
                     {
-                        sb.AppendLine($"Duration: {punishment.Duration.Value.ToString("G")}");
+                        sb.AppendLine($"Duration: {punishment.Duration.Value.ToString("G")} UTC");
                     }
 
                     if (!string.IsNullOrEmpty(punishment.Reason))
