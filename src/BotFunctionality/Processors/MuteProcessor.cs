@@ -10,15 +10,9 @@ namespace ModeratorBot.BotFunctionality.Processors
     {
         public static async Task ProcessMuteAsync(Message message, TelegramBotClient bot)
         {
-            // arguments. split by spaces. skip "/mute".
-            string?[]? args = message.Text?.Split('\n')[0].Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1)
-                .ToArray();
+            string?[]? args = Parser.ParseArguments(message.Text!);
+            string? reason = Parser.ParseReason(message.Text!);
 
-            // reason for the mute. parses new line.
-            string? reason = message.Text?.Contains('\n') == true
-                ? message.Text[(message.Text.IndexOf('\n') + 1)..].Trim()
-                : null;
-            if (string.IsNullOrWhiteSpace(reason)) reason = null;
             if (message.ReplyToMessage != null)
             {
                 if (args?.Length > 0 && long.TryParse(args[0], out _))

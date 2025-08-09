@@ -1,3 +1,6 @@
+using ModeratorBot.BotFunctionality.Callbacks;
+using ModeratorBot.BotFunctionality.Helpers;
+using ModeratorBot.Models;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -9,9 +12,12 @@ namespace ModeratorBot.BotFunctionality.Processors
     {
         public static async Task ProcessInfoAsync(Message message, TelegramBotClient bot)
         {
-            string?[]? args = message.Text?.Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1).ToArray();
+            string?[]? args = Parser.ParseArguments(message.Text!);
+
             if (message.ReplyToMessage != null)
             {
+                // try/catching to catch invalid id errors and send the exceptions as different exceptions that won't
+                // make logs extremely trashy.
                 try
                 {
                     var replyMember = await bot.GetChatMember(message.Chat.Id, message.ReplyToMessage.From!.Id);

@@ -1,3 +1,4 @@
+using ModeratorBot.BotFunctionality.Helpers;
 using ModeratorBot.Models;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -9,15 +10,8 @@ namespace ModeratorBot.BotFunctionality.Processors
     {
         public static async Task ProcessKickAsync(Message message, TelegramBotClient bot)
         {
-            // arguments. split by spaces. skips "/kick".
-            string?[]? args = message.Text?.Split('\n')[0].Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1)
-                .ToArray();
-
-            // reason for the kick. parses new line.
-            string? reason = message.Text?.Contains('\n') == true
-                ? message.Text[(message.Text.IndexOf('\n') + 1)..].Trim()
-                : null;
-            if (string.IsNullOrWhiteSpace(reason)) reason = null;
+            string?[]? args = Parser.ParseArguments(message.Text!);
+            string? reason = Parser.ParseReason(message.Text!);
 
             if (message.ReplyToMessage != null)
             {

@@ -10,15 +10,8 @@ namespace ModeratorBot.BotFunctionality.Processors
     {
         public static async Task ProcessBanAsync(Message message, TelegramBotClient bot)
         {
-            // arguments. split by spaces. skips "/ban".
-            string?[]? args = message.Text?.Split('\n')[0].Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1)
-                .ToArray();
-
-            // reason for the ban. parses new line.
-            string? reason = message.Text?.Contains('\n') == true
-                ? message.Text[(message.Text.IndexOf('\n') + 1)..].Trim()
-                : null;
-            if (string.IsNullOrWhiteSpace(reason)) reason = null;
+            string?[]? args = Parser.ParseArguments(message.Text!);
+            string? reason = Parser.ParseReason(message.Text!);
 
             if (message.ReplyToMessage != null)
             {
@@ -81,10 +74,14 @@ namespace ModeratorBot.BotFunctionality.Processors
                 }
 
                 var user = await Database.GetUser(member.User.Id, message.Chat.Id);
-                if (user.WarningCount >= Database.MAX_WARNS)
+                var group = await Database.GetGroup(message);
+
+                int warnBanThreshold = group.GetConfigValue("WarnBanThreshold", 3);
+
+                if (user.WarningCount >= warnBanThreshold)
                 {
                     reason = "User has reached max warnings.";
-                    await Database.ResetWarning(user.UserId, user.GroupId);
+                    await Database.ResetWarnings(user.UserId, user.GroupId);
                 }
 
                 await bot.BanChatMember(message.Chat.Id, member.User.Id, untilDate: duration);
