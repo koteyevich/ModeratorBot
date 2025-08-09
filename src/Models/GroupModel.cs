@@ -5,9 +5,9 @@ namespace ModeratorBot.Models
 {
     public class ConfigEntry<T>
     {
-        public string Name { get; set; }
-        public T Value { get; set; }
-        public T DefaultValue { get; set; }
+        public required string Name { get; set; }
+        public required T Value { get; set; }
+        public required T DefaultValue { get; set; }
     }
 
     public class GroupModel
