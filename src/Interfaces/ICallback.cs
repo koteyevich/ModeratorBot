@@ -8,7 +8,6 @@ namespace ModeratorBot.Interfaces
     {
         string Name { get; }
         string[] Aliases { get; }
-        bool IsAdminCallback { get; }
 
         Task ExecuteAsync(CallbackQuery callbackQuery, TelegramBotClient bot);
     }

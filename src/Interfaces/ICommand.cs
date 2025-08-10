@@ -9,7 +9,6 @@ namespace ModeratorBot.Interfaces
         string Name { get; }
         string Description { get; }
         string[] Aliases { get; }
-        bool IsAdminCommand { get; }
         Task ExecuteAsync(Message message, TelegramBotClient bot);
     }
 
@@ -31,6 +30,8 @@ namespace ModeratorBot.Interfaces
                 {
                     if (member.IsAdmin)
                         await ExecuteCoreAsync(message, bot);
+                    else
+                        await bot.DeleteMessage(message.Chat.Id, message.Id);
                 }
                 else
                 {

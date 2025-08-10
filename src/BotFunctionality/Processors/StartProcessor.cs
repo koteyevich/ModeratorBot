@@ -1,7 +1,6 @@
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types.ReplyMarkups;
 
 namespace ModeratorBot.BotFunctionality.Processors
 {
@@ -22,15 +21,11 @@ namespace ModeratorBot.BotFunctionality.Processors
             //     return;
             // }
 
-            var keyboard = new InlineKeyboardMarkup();
-            keyboard.AddButton(new InlineKeyboardButton("Test Button!", "tc"));
-
             await bot.SendMessage(
                 chatId: message.Chat.Id,
-                text: "👋 Hello! This is a template for your bot!\n",
+                text: "👋 Hello! This is a bot for moderation!\n",
                 parseMode: ParseMode.Html,
-                linkPreviewOptions: new LinkPreviewOptions { IsDisabled = true },
-                replyMarkup: keyboard
+                linkPreviewOptions: new LinkPreviewOptions { IsDisabled = true }
             );
         }
     }

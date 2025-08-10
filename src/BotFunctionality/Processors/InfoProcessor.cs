@@ -58,10 +58,10 @@ namespace ModeratorBot.BotFunctionality.Processors
 
         private static async Task info(Message message, ChatMember member, TelegramBotClient bot)
         {
+            var user = await Database.GetUser(member.User.Id, message.Chat.Id);
+
             if (message.ReplyToMessage != null)
             {
-                var user = await Database.GetUser(message);
-
                 var keyboard = new InlineKeyboardMarkup();
 
                 var revealButton = new InlineKeyboardButton("🔒", $"reveal_{user.UserId}_{message.Chat.Id}");
@@ -75,8 +75,6 @@ namespace ModeratorBot.BotFunctionality.Processors
             }
             else
             {
-                var user = await Database.GetUser(member.User.Id, message.Chat.Id);
-
                 var keyboard = new InlineKeyboardMarkup();
 
                 var revealButton = new InlineKeyboardButton("🔒", $"reveal_{user.UserId}_{user.GroupId}");

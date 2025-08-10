@@ -90,7 +90,7 @@ namespace ModeratorBot.BotFunctionality.Processors
 
                 await bot.SendMessage(message.Chat.Id,
                     $"User <code>{member.User.Id}</code> has been <b>banned.</b>\n" +
-                    $"<b>Until:</b> <i>{(duration != null ? duration.Value.ToString("G") : "<b>FOREVER</b>")}</i>\n" +
+                    $"<b>Until:</b> <i>{(duration != null ? $"{duration.Value:G} UTC" : "FOREVER")}</i>\n" +
                     $"<b>Reason:</b> <i>{(string.IsNullOrEmpty(reason) ? "No reason provided" : reason)}</i>",
                     ParseMode.Html);
             }
