@@ -1,5 +1,6 @@
 ﻿using ModeratorBot.BotFunctionality.Callbacks;
 using ModeratorBot.BotFunctionality.Commands;
+using ModeratorBot.BotFunctionality.Processors;
 using ModeratorBot.Exceptions;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -72,6 +73,8 @@ namespace ModeratorBot
                 {
                     return;
                 }
+
+                await FilterProcessor.ProcessFilter(message, bot!);
 
                 if (message.Text!.StartsWith('/'))
                 {

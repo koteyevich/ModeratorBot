@@ -284,5 +284,23 @@ namespace ModeratorBot
 
             await group_collection.UpdateOneAsync(filter, update);
         }
+
+        public static async Task AddFilter(Message message, Filter.TriggerType triggerType, string trigger,
+            string reply
+        )
+        {
+            var filter = new Filter
+            {
+                Trigger = trigger,
+                TriggerCondition = triggerType,
+                Reply = reply
+            };
+
+            var dbFilter = Builders<GroupModel>.Filter.Eq(g => g.GroupId, message.Chat.Id);
+
+            var update = Builders<GroupModel>.Update.AddToSet(g => g.Filters, filter);
+
+            await group_collection.UpdateOneAsync(dbFilter, update);
+        }
     }
 }

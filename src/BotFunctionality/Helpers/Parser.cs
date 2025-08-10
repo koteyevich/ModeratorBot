@@ -1,3 +1,5 @@
+using ModeratorBot.Models;
+
 namespace ModeratorBot.BotFunctionality.Helpers
 {
     public static class Parser
@@ -23,6 +25,13 @@ namespace ModeratorBot.BotFunctionality.Helpers
             return str.Contains('\n')
                 ? str[(str.IndexOf('\n') + 1)..].Trim()
                 : null;
+        }
+
+        public static Filter.TriggerType ParseTriggerType(string str)
+        {
+            Enum.TryParse(str.ToLower(), true, out Filter.TriggerType triggerType);
+
+            return triggerType;
         }
     }
 }
