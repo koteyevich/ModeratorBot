@@ -61,7 +61,8 @@ namespace ModeratorBot.BotFunctionality.Callbacks
             {
                 foreach (var punishment in punishmentsToShow)
                 {
-                    sb.AppendLine($"<blockquote>{punishment.CreatedAt.ToString("G")}");
+                    sb.AppendLine($"<blockquote>Type: {punishment.Type}");
+                    sb.AppendLine($"Created at: {punishment.CreatedAt.ToString("G")}");
                     sb.AppendLine($"Moderator: {punishment.ModeratorId}");
                     if (punishment.Duration != null)
                     {
