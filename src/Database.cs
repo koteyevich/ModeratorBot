@@ -205,6 +205,11 @@ namespace ModeratorBot
             }
         }
 
+        /// <summary>
+        /// Removes a warning from the user.
+        /// </summary>
+        /// <param name="message">Original message</param>
+        /// <param name="reason">Optional. Reason for the warning removal</param>
         public static async Task AddUnwarning(Message message, string? reason)
         {
             if (message.ReplyToMessage != null)
@@ -246,6 +251,10 @@ namespace ModeratorBot
                 Builders<UserModel>.Update.Set(u => u.WarningCount, 0));
         }
 
+        /// <summary>
+        /// Increments message count and sets last activity time to the current time in UTC timezone
+        /// </summary>
+        /// <param name="message">Original message</param>
         public static async Task UpdateUserActivity(Message message)
         {
             var user = await GetUser(message);
@@ -256,9 +265,15 @@ namespace ModeratorBot
                 Builders<UserModel>.Update.Set(u => u.LastSeen, DateTime.UtcNow));
         }
 
-        public static async Task UpdateGroupConfigSetting(Message message, string name, string inputValue)
+        /// <summary>
+        /// Updates setting value in configuration.
+        /// </summary>
+        /// <param name="message">Original message.</param>
+        /// <param name="name">Name of the setting</param>
+        /// <param name="newValue">New value for the setting</param>
+        public static async Task UpdateGroupConfigSetting(Message message, string name, string newValue)
         {
-            object validatedValue = ConfigValidator.ValidateAndConvert(name, inputValue);
+            object validatedValue = ConfigValidator.ValidateAndConvert(name, newValue);
 
             var filter = Builders<GroupModel>.Filter.And(
                 Builders<GroupModel>.Filter.Eq(g => g.GroupId, message.Chat.Id),
@@ -267,22 +282,7 @@ namespace ModeratorBot
 
             var update = Builders<GroupModel>.Update.Set(g => g.Config.FirstMatchingElement().Value, validatedValue);
 
-            var result = await group_collection.UpdateOneAsync(filter, update);
-
-            if (result.MatchedCount == 0)
-            {
-                Logger.Warn("No group or config entry found with name {Name} for GroupId {GroupId}", name,
-                    message.Chat.Id);
-
-                var newEntry = new ConfigEntry<object>
-                    { Name = name, Value = validatedValue, DefaultValue = validatedValue };
-                var pushUpdate = Builders<GroupModel>.Update.Push(g => g.Config, newEntry);
-                await group_collection.UpdateOneAsync(
-                    Builders<GroupModel>.Filter.Eq(g => g.GroupId, message.Chat.Id),
-                    pushUpdate,
-                    new UpdateOptions { IsUpsert = true });
-                Logger.Info("Added new config entry {Name} for GroupId {GroupId}", name, message.Chat.Id);
-            }
+            await group_collection.UpdateOneAsync(filter, update);
         }
     }
 }
