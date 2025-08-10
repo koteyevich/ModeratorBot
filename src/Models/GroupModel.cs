@@ -16,9 +16,9 @@ namespace ModeratorBot.Models
         public long GroupId { get; init; }
 
         [BsonElement("Config")]
-        public List<ConfigEntry<object>> Config { get; private set; } = new()
-        {
-            new ConfigEntry<object> { Name = "WarnBanThreshold", Value = 3, DefaultValue = 3 }
-        };
+        public List<ConfigEntry<object>> Config { get; private set; } =
+        [
+            new() { Name = "WarnBanThreshold", Value = 3, DefaultValue = 3 }
+        ];
     }
 }

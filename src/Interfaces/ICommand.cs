@@ -9,7 +9,6 @@ namespace ModeratorBot.Interfaces
         string Name { get; }
         string Description { get; }
         string[] Aliases { get; }
-        bool IsAdminCommand { get; }
         Task ExecuteAsync(Message message, TelegramBotClient bot);
     }
 
