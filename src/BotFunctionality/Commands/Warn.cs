@@ -6,7 +6,6 @@ using Telegram.Bot.Types;
 namespace ModeratorBot.BotFunctionality.Commands
 {
     public class Warn : CommandBase
-
     {
         public override string Name => "warn";
 
