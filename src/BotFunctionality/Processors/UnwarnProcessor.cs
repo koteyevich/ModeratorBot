@@ -1,6 +1,5 @@
 using ModeratorBot.BotFunctionality.Helpers;
 using ModeratorBot.Exceptions;
-using ModeratorBot.Models;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;

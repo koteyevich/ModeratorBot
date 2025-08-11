@@ -84,7 +84,7 @@ namespace ModeratorBot.BotFunctionality.Processors
                                     $"{media.Type} too big! (>= {media.MaxSize.Value / 1024 / 1024}MB)");
                         }
 
-                        reply = media.GetReply(replyMsg.Caption);
+                        reply = media.GetReply(replyMsg.Caption!);
                     }
                     else
                     {
