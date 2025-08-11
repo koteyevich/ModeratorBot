@@ -308,5 +308,22 @@ namespace ModeratorBot
 
             await group_collection.UpdateOneAsync(dbFilter, update);
         }
+
+        public static async Task RemoveFilter(Message message, string trigger)
+        {
+            var group = await GetGroup(message);
+
+            if (group.Filters.Find(f => f.Trigger == trigger) != null)
+            {
+                var dbFilter = Builders<GroupModel>.Filter.Eq(g => g.GroupId, message.Chat.Id);
+                var update = Builders<GroupModel>.Update.PullFilter(g => g.Filters, f => f.Trigger == trigger);
+
+                await group_collection.UpdateOneAsync(dbFilter, update);
+            }
+            else
+            {
+                throw new MessageException($"Trigger '{trigger}' does not exist.");
+            }
+        }
     }
 }
