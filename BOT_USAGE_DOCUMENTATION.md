@@ -45,8 +45,6 @@ Asked to be kicked.
 
 Certain commands have aliases: for example, `/unwarn` can be shortened to `/uw`. To get a list of all aliases, enter
 `/help`
-
-
 <br>
 <br>
 [To the top](#bot-usage-documentation)
@@ -55,36 +53,46 @@ Certain commands have aliases: for example, `/unwarn` can be shortened to `/uw`.
 
 Help is a command that lists out all commands available in the bot.
 ![img.png](assets/help_screenshot.png)
+<br>
 [To the top](#bot-usage-documentation)
 
 ## Mute (/mute or /m)
 
 Mute command silences a user.
 ![mute_screenshot.png](assets/mute_screenshot.png)
+<br>
 [To the top](#bot-usage-documentation)
 
 ## Unmute (/unmute or /um)
 
 Unmute command reverts the silencing of a user.
 ![unmute_screenshot.png](assets/unmute_screenshot.png)
+<br>
 [To the top](#bot-usage-documentation)
 
 ## Ban (/ban or /b)
 
-Ban command removes a user from the group and does not allow the user to join back
+Ban command removes a user from the group and does not allow the user to join back.
+<br>
+> [!CAUTION]
+> The info shown in the screenshot is not real.
+
 ![ban_screenshot.png](assets/ban_screenshot.png)
+<br>
 [To the top](#bot-usage-documentation)
 
 ## Unban (/unban or /ub)
 
 Unban command reverts the ban.
 ![unban_screenshot.png](assets/unban_screenshot.png)
+<br>
 [To the top](#bot-usage-documentation)
 
 ## Kick (/kick or /k)
 
 Kick command removes a user from the group, but still allows the user to join back
 ![kick_screenshot.png](assets/kick_screenshot.png)
+<br>
 [To the top](#bot-usage-documentation)
 
 ## Warn (/warn or /w)
@@ -92,12 +100,14 @@ Kick command removes a user from the group, but still allows the user to join ba
 Increments the counter of warnings on the user. If the counter reaches the threshold (default: 3) - the user
 gets [banned](#ban-ban-or-b) (the counter gets reset too).
 ![warn_screenshot.png](assets/warn_screenshot.png)
+<br>
 [To the top](#bot-usage-documentation)
 
 ## Unwarn (/unwarn or /uw)
 
 Decrements the counter of warnings on the user.
 ![unwarn_screenshot.png](assets/unwarn_screenshot.png)
+<br>
 [To the top](#bot-usage-documentation)
 
 ## Info (/info or /i)
@@ -107,7 +117,9 @@ Shows the track record of the user and some other statistics.
 The info is not shown at first, but will be revealed after
 pressing the button.
 ![info_hidden_screenshot.png](assets/info_hidden_screenshot.png)
+<br>
 But after pressing, this is how it looks.
+<br>
 ![info_shown_screenshot.png](assets/info_shown_screenshot.png)
-
+<br>
 [To the top](#bot-usage-documentation)
