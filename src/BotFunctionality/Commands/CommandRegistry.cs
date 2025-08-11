@@ -22,7 +22,8 @@ namespace ModeratorBot.BotFunctionality.Commands
                 new Unwarn(),
                 new Info(),
                 new Config(),
-                new Filter()
+                new Filter(),
+                new ListFilters()
             };
 
             foreach (var command in commandList)
