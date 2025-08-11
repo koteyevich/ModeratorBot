@@ -26,13 +26,15 @@ namespace ModeratorBot.BotFunctionality.Processors
             {
                 var sb = new StringBuilder();
 
+                sb.AppendLine($"<blockquote expandable>");
                 foreach (ConfigEntry<object> setting in group.Config)
                 {
                     sb.AppendLine(
-                        $"<blockquote expandable>" +
-                        $"<code>{setting.Name}</code> - <b>{setting.Value}</b> <i>(Default: <b>{setting.DefaultValue}</b>)</i>" +
-                        $"</blockquote>");
+                        $"<code>{setting.Name}</code> - <b>{setting.Value}</b> <i>(Default: <b>{setting.DefaultValue}</b>)</i>"
+                    );
                 }
+
+                sb.AppendLine($"</blockquote>");
 
                 sb.AppendLine("<b>To set a value to a setting, type /config [NAME] [VALUE]</b>");
                 sb.AppendLine("<i>Example: /config WarnBanThreshold 5</i>");
