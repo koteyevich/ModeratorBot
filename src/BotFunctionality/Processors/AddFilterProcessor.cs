@@ -103,6 +103,12 @@ namespace ModeratorBot.BotFunctionality.Processors
                     throw new MessageException("Please provide a reply to the trigger.");
                 }
             }
+            else
+            {
+                throw new MessageException("Not enough arguments provided. \n" +
+                                           "Example: /af contains cat \n" +
+                                           "kitty!");
+            }
         }
     }
 }
