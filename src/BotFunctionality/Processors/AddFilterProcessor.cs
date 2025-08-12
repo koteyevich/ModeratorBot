@@ -95,11 +95,19 @@ namespace ModeratorBot.BotFunctionality.Processors
                 if (reply != null)
                 {
                     await Database.AddFilter(message, parsedType, trigger, reply);
+                    await bot.SendMessage(message.Chat.Id,
+                        $"Done! Filter with the trigger '{trigger}' has been added.");
                 }
                 else
                 {
                     throw new MessageException("Please provide a reply to the trigger.");
                 }
+            }
+            else
+            {
+                throw new MessageException("Not enough arguments provided. \n" +
+                                           "Example: /af contains cat \n" +
+                                           "kitty!");
             }
         }
     }
