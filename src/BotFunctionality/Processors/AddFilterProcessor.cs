@@ -95,6 +95,8 @@ namespace ModeratorBot.BotFunctionality.Processors
                 if (reply != null)
                 {
                     await Database.AddFilter(message, parsedType, trigger, reply);
+                    await bot.SendMessage(message.Chat.Id,
+                        $"Done! Filter with the trigger '{trigger}' has been added.");
                 }
                 else
                 {
